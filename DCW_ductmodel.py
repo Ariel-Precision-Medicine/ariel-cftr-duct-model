@@ -15,33 +15,6 @@ from scipy.integrate import odeint
 import numpy as np
 import matplotlib.pyplot as plt
 
-#######
-#    # Constant Vars
-#    bi = 15 
-#    luminal_bi = 32
-#    g_bi = 0.2
-#    intra_cl = 60 
-#    luminal_cl = 160 - luminal_bi
-#    g_cl = 1
-#    g_nbc = 2
-#    knbc = g_nbc
-#    ni = 14
-#    nb = 140 # sodium basolateral
-#    bb = 22 # bicarbonate basolateral 
-#    ek = -0.085
-#    gk = 1
-#    gnaleak = 0.4
-#    enbc = nernst_potential((bi**2*ni), (bb**2*nb))
-#    eb = nernst_potential(bi, luminal_bi)
-#    ec = nernst_potential(intra_cl, luminal_cl)
-#    ena = nernst_potential(nb, ni)
-#    volume_ratio = 0.1
-#    g_apl = 0.25
-#    k_bi = 1
-#    k_cl = 10
-#    jac = 0.025
-#    zeta = 0.05
-#####
 # Bicarb9 ODE
 g_bi = 0.2
 g_cl = 1
@@ -235,4 +208,31 @@ plt.xlabel('time')
 plt.ylabel('y(t)')
 plt.show()
 
-
+#### Ignore below
+#######
+#    # Constant Vars
+#    bi = 15 
+#    luminal_bi = 32
+#    g_bi = 0.2
+#    intra_cl = 60 
+#    luminal_cl = 160 - luminal_bi
+#    g_cl = 1
+#    g_nbc = 2
+#    knbc = g_nbc
+#    ni = 14
+#    nb = 140 # sodium basolateral
+#    bb = 22 # bicarbonate basolateral 
+#    ek = -0.085
+#    gk = 1
+#    gnaleak = 0.4
+#    enbc = nernst_potential((bi**2*ni), (bb**2*nb))
+#    eb = nernst_potential(bi, luminal_bi)
+#    ec = nernst_potential(intra_cl, luminal_cl)
+#    ena = nernst_potential(nb, ni)
+#    volume_ratio = 0.1
+#    g_apl = 0.25
+#    k_bi = 1
+#    k_cl = 10
+#    jac = 0.025
+#    zeta = 0.05
+#####
