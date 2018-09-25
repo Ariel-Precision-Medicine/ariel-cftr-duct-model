@@ -116,6 +116,7 @@ time_start = 0
 time_end = 10
 
 # Initial Intracellular concentrations
+### Add basolateral concentrations to act as initial conditions
 intra_cl = 60 # intracellular chloride
 luminal_bi = 32 # luminal bicarb
 b_i_0 = 15 # intracellular bicarb
@@ -148,7 +149,8 @@ def flux(gcftr, bi, t):
     
     # Luminal Cl remains at 160
     # form: dxdt = 0 (straight line, no integration needed)
-    cl_lum = 160 #mM (assumed to be constant)
+    dcl_lumdt = zeta * J_luminal_cl  #mM (assumed to be constant) 
+    ### Sum of luminal chloride and bicarbonate
     
     # Intracellular Cl
     # form: dxdt = a*b
@@ -171,18 +173,41 @@ def flux(gcftr, bi, t):
     # dNa(intra)/dt = zeta * (J_nbc - J_nak - J_na_leak)
     dna_intradt = zeta * (J_nbc - J_nak - J_na_leak)
     
-    return cl_lum,dcl_intradt,dbi_lumdt,dbi_intradt,dna_intradt
+    return dcl_lumdt,dcl_intradt,dbi_lumdt,dbi_intradt,dna_intradt
 
 ## time points
 #t = np.linspace(0,600)
 #
 ## solve ODE
-##y = odeint(flux, 0, t)
+#Y0 = [0,0,0,0,0]
+#y = odeint(flux, t, Y0)
 #
 ## plot results
-#plt.plot(t,y)
+#plt.plot(t,y[0])
 #plt.xlabel('time')
 #plt.ylabel('y(t)')
 #plt.show()
+#
+    
+# Basolateral Concentrations
+nb = 140 # sodium basolateral
+bb = 22 # bicarbonate basolateral
+cb = 130 # chloride basolateral
+intra_cl = 60 # intracellular chloride
+luminal_bi = 32 # luminal bicarb
+b_i_0 = 15 # intracellular bicarb
+na_i_0 = 25 # intracellular sodium
+gcftr_0 = 0 # changed to 1 to "turn on" according to paper
 
+t = np.linspace(0,600)
+nb_graph = np.linspace(nb,nb)
+bb_graph = np.linspace(bb,bb)
+cb_graph = np.linspace(cb,cb)
 
+plt.plot(t,nb_graph,label='basolateral Na')
+plt.plot(t,bb_graph,label='basolateral Bicarb')
+plt.plot(t,cb_graph,label='basolateral Cl')
+plt.xlabel('time')
+plt.ylabel('Concentration (mM)')
+plt.legend(loc='upper right')
+plt.show()
