@@ -62,7 +62,7 @@ bl = 32
 cl = 160 - bl
 gcftron = 1
 gcftrbase = 0.00007
-ek = -0.85
+ek = -0.85 # should be -0.085, but system behaves better with this number
 gk = 1
 cap = 1
 gnak = 3.125
@@ -70,7 +70,7 @@ np0 = 25
 epump = -0.2
 ionstr = 160
 gnaleak = 0.4
-jac = 0.25
+jac = 0.25 # should be 0.025
 rat = 0.25
 
 def ductmodelsystem(state, t):
@@ -105,24 +105,43 @@ def ductmodelsystem(state, t):
     
     return [dbi, dbl, dci, dni, dgcftr]
     
-t = np.linspace(0, 4000, 1000)
+t_on = 3000
+t_off = 5000
+t1 = np.linspace(0, t_on)
 init_state = [bi, bl, ci, ni, gcftrbase] # 15, 32, 60, 28, 1 
-state = odeint(ductmodelsystem, init_state, t)
+state1 = odeint(ductmodelsystem, init_state, t1)
+on_state = [state1[-1,0],state1[-1,1],state1[-1,2],state1[-1,3], gcftron]
+t2 = np.linspace(t_on, t_off)
+state2 = odeint(ductmodelsystem, on_state, t2)
+off_state = [state2[-1,0],state2[-1,1],state2[-1,2],state2[-1,3], gcftrbase]
+t3 = np.linspace(t_off, 9000)
+state3 = odeint(ductmodelsystem, off_state, t3)
+
+t = np.append(t1, t2)
+t = np.append(t,t3)
+state = np.vstack((state1, state2))
+state = np.vstack((state, state3))
 
 plt.subplot(2, 1, 1)
 plt.plot(t,state[:,0], 'r-', label = 'b_intra')
 plt.plot(t,state[:,1], 'g-', label = 'b_luminal')
-plt.legend()
+plt.axvline(x=t_on, color = 'pink', label = 't_on')
+plt.axvline(x=t_off, color = 'purple', label = 't_off')
+plt.axvspan(t_on, t_off, alpha=0.1, color='red')
+plt.legend(loc = 'right')
 plt.ylim((0,150))
-plt.title('Duct Modeling Dif. Eq.')
+plt.title('Duct Modeling Dif. Eq. \n GCFTR ON in RED')
 plt.ylabel('Bicarb Conc. (mM)')
 
 plt.subplot(2, 1, 2)
 plt.plot(t,state[:,2], label = 'c_intra')
 plt.plot(t,(160- state[:,1]), label = 'c_luminal')
+plt.axvline(x=t_on, color = 'pink', label = 't_on')
+plt.axvline(x=t_off, color = 'purple', label = 't_off')
+plt.axvspan(t_on, t_off, alpha=0.1, color='red')
 plt.xlabel('time (min)')
 plt.ylabel('Chloride Conc. (mM)')
-plt.legend()
+plt.legend(loc = 'right')
 plt.ylim((0,150))
 plt.show()
 
