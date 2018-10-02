@@ -39,175 +39,91 @@ def nernst_potential(a,b):
 def voltage_flux(perm, voltage_potential, nernst):
     return (perm*(voltage_potential-nernst))
 
-# Conductances
-g_nbc = 2
-g_apl = 0.25
-g_apbl = 0.005
-
-# bicarb9.ode
+# Constants & Initial Conditions
 g_bi = 0.2
 g_cl = 1
-
-# Time scale adjustment factor (multiplication of all permeabilities)
-zeta = 0.05 # (lowercase xi in Eq. 21,22,23,24)
-
-# Antiporter Constants
-k_bi = 1
-k_cl = 10
-
-# Basolateral Concentrations
-nb = 140 # sodium basolateral
-bb = 22 # bicarbonate basolateral
-cb = 130 # chloride basolateral
-
-# Intracellular sodium (used to turn Na/K pump on/off)
-ni = 14 # units?
-
-# Volume Ratio (10:1), rho is ClBi permeability
-volume_ratio = 0.1
+zeta = 0.05
+kbi = 1
+kcl = 10
+gnbc = 2
+gapl = 0.25
+gapbl = 0.005
+nb = 140
+bb = 22
+cb = 130
+ni = 14
+vr = 0.1
+bi0 = 15
 buf = 0.1
 chi = 1
-
-# Initial Intracellular concentrations
-intra_cl = 60 # intracellular chloride
-luminal_bi = 32 # luminal bicarb
-b_i_0 = 15 # intracellular bicarb
-na_i_0 = 25 # intracellular sodium
-
-# Osmotic Balance (160mM)
-luminal_cl = 160 - luminal_bi
-g_CFTR_on = 1
-g_CFTR_base = 7*10**(-5)
-ek = -0.085
+bi = 15
+ci = 60
+bl = 32
+cl = 160 - bl
+gcftron = 1
+gcftrbase = 0.00007
+ek = -0.85
 gk = 1
-
-# Membrane Capacitance
-mem_capacitance = 1
-
-# Voltage via Nernst Potential
-eb = nernst_potential(b_i_0, luminal_bi)
-enbc = nernst_potential((b_i_0**2*ni), (bb**2*nb))
-ec = nernst_potential(intra_cl, luminal_cl)
-ena = nernst_potential(nb, ni)
-
+cap = 1
+gnak = 3.125
+np0 = 25
+epump = -0.2
+ionstr = 160
 gnaleak = 0.4
+jac = 0.25
+rat = 0.25
 
-# Acinar Variables
-jac = 0.025 # Jacobian??? Flux??
-acinar_ratio = 0.25 # Maintain ratio of 4:1 Cl:Bi (original "rat")
+def ductmodelsystem(state, t):
+    bi, bl, ci, ni, gcftr = state
+    cl = 160 - bl
+    eb = nernst_potential(bi, bl)
+    enbc = nernst_potential((bi**2*ni), (bb**2*nb))
+    ec = nernst_potential(ci, cl)
+    ena = nernst_potential(nb, ni)
+    kccf = eff_perm(ci,cl)*gcftr*g_cl
+    kbcf = eff_perm(bi, bl)*gcftr*g_bi
+    knbc = gnbc
+    v = (knbc*enbc+kbcf*eb+kccf*ec+gk*ek+gnaleak*ena)/(knbc+kbcf+kccf+gk)
+    jnbc = knbc*(v-enbc)
+    jbcftr = kbcf*(v-eb)
+    jccftr = kccf*(v-ec)
+    japl = antiporter(bl,bi,cl,ci,kbi,kcl)*gapl
+    japbl = antiporter(bb,bi,cb,ci,kbi,kcl)*gapbl
+    jbl = (-jbcftr-japl)/vr+jac*rat
+    jci = jccftr-japl-japbl
+    jcl = (-jccftr+japl)/vr+jac
+    jlum = (jcl+jbl)/ionstr
+    jnak = gnak*(v-epump)*(ni/np0)
+    jnaleak = gnaleak*(v-ena)
+    flow = jlum*ionstr
 
-# Ionic Strength
-ionic_strength = 160
-g_nak = 3.125
-e_pump = -0.2
-
-# effective CFTR permeability
-knbc = g_nbc #  What is this for?
-
-
-###############################################################################
-# Differential Equations for the Concentrations
-###############################################################################
-
-# Times from Figure 3 graphs
-time_on = 1 # gate opens (seemingly arbitrary)
-time_off = 6 # gate closes (seemingly arbitrary)
-time_start = 0 
-time_end = 10
-
-# Initial Intracellular concentrations
-### Add basolateral concentrations to act as initial conditions
-intra_cl = 60 # intracellular chloride
-luminal_bi = 32 # luminal bicarb
-b_i_0 = 15 # intracellular bicarb
-na_i_0 = 25 # intracellular sodium
-gcftr_0 = 0 # changed to 1 to "turn on" according to paper
-
-
-def flux(gcftr, bi, t):
-    # Effective CFTR Permeability
-    k_bi_CFTR = eff_perm(bi, luminal_bi)*gcftr*g_bi
-    k_cl_CFTR = eff_perm(intra_cl, luminal_cl)*gcftr*g_cl
-    # Voltage Potential
-    voltage_potential = (knbc*enbc + k_bi_CFTR*eb + k_cl_CFTR*ec + gk*ek + \
-                     gnaleak*ena) / (knbc + k_bi_CFTR + k_cl_CFTR + gk)
-    # All fluxes
-    J_nbc = voltage_flux(knbc, voltage_potential, enbc)
-    J_ccftr = voltage_flux(k_cl_CFTR, voltage_potential, ec)
-    J_bcftr = voltage_flux(k_bi_CFTR, voltage_potential, eb)
-    J_apl = antiporter(luminal_bi,bi,luminal_cl,intra_cl,k_bi,k_cl) * g_apl
-    J_apbl = antiporter(bb,bi,cb,intra_cl,k_bi,k_cl) * g_apbl
-    J_intra_cl = J_ccftr - J_apl - J_apbl
-    J_luminal_bi = (-J_bcftr-J_apl)/volume_ratio + jac * acinar_ratio
-    J_intra_cl = J_ccftr - J_apl - J_apbl
-    J_luminal_cl = (-J_ccftr + J_apl)/volume_ratio + jac
-    J_luminal = (J_luminal_cl + J_luminal_bi) / ionic_strength
-    J_nak = g_nak * (voltage_potential - ena)
-    J_na_leak = gnaleak * (voltage_potential - ena)
+    dbi = zeta*chi*(jbcftr+japl+japbl+buf*(bi0-bi)+2*jnbc)
+    dbl = (jbl-jlum*bl)*zeta
+    dci = jci*zeta
+    dni = zeta*(jnbc-jnak-jnaleak)
+    dgcftr = 0
     
-    # Differential Equations to be integrated & graphed
+    return [dbi, dbl, dci, dni, dgcftr]
     
-    # Luminal Cl remains at 160
-    # form: dxdt = 0 (straight line, no integration needed)
-    dcl_lumdt = zeta * J_luminal_cl  #mM (assumed to be constant) 
-    ### Sum of luminal chloride and bicarbonate
-    
-    # Intracellular Cl
-    # form: dxdt = a*b
-    # dCl(intra)/dt = zeta * J_intra_cl
-    dcl_intradt = zeta * J_intra_cl
-    
-    # Luminal Bicarb
-    # form: dxdt = a*(b-c*x)
-    # dBi(luminal)/dt = zeta * (J_luminal_bi - J_luminal * luminal_bi)
-    dbi_lumdt = zeta * (J_luminal_bi - J_luminal * luminal_bi)
-    
-    # Intracellular Bicarb
-    # form: dxdt = a*b*(c + d + e + f*(x_i-x) + g)
-    # dBi(intra)/dt = zeta * chi *
-    #                       (J_bcftr + J_apl + J_apbl + buf * (bi_0-bi) + 2*J_nbc)
-    dbi_intradt = zeta * chi * (J_bcftr + J_apl + J_apbl + buf * (b_i_0-bi) + 2*J_nbc)
-    
-    # Intracellular Sodium
-    # form: dxdt = a*(b - c - d)
-    # dNa(intra)/dt = zeta * (J_nbc - J_nak - J_na_leak)
-    dna_intradt = zeta * (J_nbc - J_nak - J_na_leak)
-    
-    return dcl_lumdt,dcl_intradt,dbi_lumdt,dbi_intradt,dna_intradt
+t = np.linspace(0, 4000, 1000)
+init_state = [bi, bl, ci, ni, gcftrbase] # 15, 32, 60, 28, 1 
+state = odeint(ductmodelsystem, init_state, t)
 
-## time points
-#t = np.linspace(0,600)
-#
-## solve ODE
-#Y0 = [0,0,0,0,0]
-#y = odeint(flux, t, Y0)
-#
-## plot results
-#plt.plot(t,y[0])
-#plt.xlabel('time')
-#plt.ylabel('y(t)')
-#plt.show()
-#
-    
-# Basolateral Concentrations
-nb = 140 # sodium basolateral
-bb = 22 # bicarbonate basolateral
-cb = 130 # chloride basolateral
-intra_cl = 60 # intracellular chloride
-luminal_bi = 32 # luminal bicarb
-b_i_0 = 15 # intracellular bicarb
-na_i_0 = 25 # intracellular sodium
-gcftr_0 = 0 # changed to 1 to "turn on" according to paper
+plt.subplot(2, 1, 1)
+plt.plot(t,state[:,0], 'r-', label = 'b_intra')
+plt.plot(t,state[:,1], 'g-', label = 'b_luminal')
+plt.legend()
+plt.ylim((0,150))
+plt.title('Duct Modeling Dif. Eq.')
+plt.ylabel('Bicarb Conc. (mM)')
 
-t = np.linspace(0,600)
-nb_graph = np.linspace(nb,nb)
-bb_graph = np.linspace(bb,bb)
-cb_graph = np.linspace(cb,cb)
-
-plt.plot(t,nb_graph,label='basolateral Na')
-plt.plot(t,bb_graph,label='basolateral Bicarb')
-plt.plot(t,cb_graph,label='basolateral Cl')
-plt.xlabel('time')
-plt.ylabel('Concentration (mM)')
-plt.legend(loc='upper right')
+plt.subplot(2, 1, 2)
+plt.plot(t,state[:,2], label = 'c_intra')
+plt.plot(t,(160- state[:,1]), label = 'c_luminal')
+plt.xlabel('time (min)')
+plt.ylabel('Chloride Conc. (mM)')
+plt.legend()
+plt.ylim((0,150))
 plt.show()
+
+
