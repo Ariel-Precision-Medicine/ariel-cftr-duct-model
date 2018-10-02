@@ -33,11 +33,7 @@ def nernst_potential(a,b):
     ideal_gas = 8.31451
     faraday_cst = 96485
     body_temp = 310 #K
-    return (ideal_gas*body_temp/faraday_cst)*log(a,b)
-
-# Voltage-Dependent Flux Fxn
-def voltage_flux(perm, voltage_potential, nernst):
-    return (perm*(voltage_potential-nernst))
+    return (ideal_gas*body_temp/faraday_cst)*log(a/b)
 
 # Constants & Initial Conditions
 g_bi = 0.2
@@ -62,7 +58,7 @@ bl = 32
 cl = 160 - bl
 gcftron = 1
 gcftrbase = 0.00007
-ek = -0.85 # should be -0.085, but system behaves better with this number
+ek = -0.085 # should be -0.085, but system behaves better with this number
 gk = 1
 cap = 1
 gnak = 3.125
@@ -70,7 +66,7 @@ np0 = 25
 epump = -0.2
 ionstr = 160
 gnaleak = 0.4
-jac = 0.25 # should be 0.025
+jac = 0.025 # should be 0.025
 rat = 0.25
 
 def ductmodelsystem(state, t):
@@ -105,8 +101,8 @@ def ductmodelsystem(state, t):
     
     return [dbi, dbl, dci, dni, dgcftr]
     
-t_on = 3000
-t_off = 5000
+t_on = 20000
+t_off = 120000
 t1 = np.linspace(0, t_on)
 init_state = [bi, bl, ci, ni, gcftrbase] # 15, 32, 60, 28, 1 
 state1 = odeint(ductmodelsystem, init_state, t1)
@@ -114,7 +110,7 @@ on_state = [state1[-1,0],state1[-1,1],state1[-1,2],state1[-1,3], gcftron]
 t2 = np.linspace(t_on, t_off)
 state2 = odeint(ductmodelsystem, on_state, t2)
 off_state = [state2[-1,0],state2[-1,1],state2[-1,2],state2[-1,3], gcftrbase]
-t3 = np.linspace(t_off, 9000)
+t3 = np.linspace(t_off, 200000)
 state3 = odeint(ductmodelsystem, off_state, t3)
 
 t = np.append(t1, t2)
@@ -129,7 +125,7 @@ plt.axvline(x=t_on, color = 'pink', label = 't_on')
 plt.axvline(x=t_off, color = 'purple', label = 't_off')
 plt.axvspan(t_on, t_off, alpha=0.1, color='red')
 plt.legend(loc = 'right')
-plt.ylim((0,150))
+plt.ylim((0,155))
 plt.title('Duct Modeling Dif. Eq. \n GCFTR ON in RED')
 plt.ylabel('Bicarb Conc. (mM)')
 
@@ -142,7 +138,7 @@ plt.axvspan(t_on, t_off, alpha=0.1, color='red')
 plt.xlabel('time (min)')
 plt.ylabel('Chloride Conc. (mM)')
 plt.legend(loc = 'right')
-plt.ylim((0,150))
+plt.ylim((0,155))
 plt.show()
 
 
