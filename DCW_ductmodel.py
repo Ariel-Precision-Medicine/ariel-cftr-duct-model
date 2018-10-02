@@ -89,7 +89,7 @@ def ductmodelsystem(state, t):
     jci = jccftr-japl-japbl
     jcl = (-jccftr+japl)/vr+jac
     jlum = (jcl+jbl)/ionstr
-    jnak = gnak*(v-epump)*(ni/np0)
+    jnak = gnak*(v-epump)*(ni/np0)**3
     jnaleak = gnaleak*(v-ena)
     flow = jlum*ionstr
 
