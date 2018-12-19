@@ -14,6 +14,6 @@ Dependencies:
 * Matplotlib
 
 Run using:
-'''
+```
 python DCW_ductmodel.py
-'''
+```
