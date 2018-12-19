@@ -8,6 +8,12 @@ Paper can be found online here: https://pdfs.semanticscholar.org/b312/3f29dbb270
 Model has been translated from XPPAUT to Python for flexibility and future use.
 
 Dependencies:
--NumPy
--SciPy
--Matplotlib
+* Python 3
+* NumPy
+* SciPy
+* Matplotlib
+
+Run using:
+'''
+python DCW_ductmodel.py
+'''
