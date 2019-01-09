@@ -48,7 +48,6 @@ nb = 140
 bb = 22
 cb = 130
 ni = 14
-vr = 0.1
 bi0 = 15
 buf = 0.1
 chi = 1
@@ -69,7 +68,7 @@ gnaleak = 0.4
 jac = 0.025 # should be 0.025
 rat = 0.25
 
-def ductmodelsystem(state, t):
+def ductmodelsystem(state, t, vr):
     bi, bl, ci, ni, gcftr = state
     cl = 160 - bl
     eb = nernst_potential(bi, bl)
@@ -98,47 +97,94 @@ def ductmodelsystem(state, t):
     dci = jci*zeta
     dni = zeta*(jnbc-jnak-jnaleak)
     dgcftr = 0
-    
     return [dbi, dbl, dci, dni, dgcftr]
-    
-t_on = 20000
-t_off = 120000
-t1 = np.linspace(0, t_on)
-init_state = [bi, bl, ci, ni, gcftrbase] # 15, 32, 60, 28, 1 
-state1 = odeint(ductmodelsystem, init_state, t1)
-on_state = [state1[-1,0],state1[-1,1],state1[-1,2],state1[-1,3], gcftron]
-t2 = np.linspace(t_on, t_off)
-state2 = odeint(ductmodelsystem, on_state, t2)
-off_state = [state2[-1,0],state2[-1,1],state2[-1,2],state2[-1,3], gcftrbase]
-t3 = np.linspace(t_off, 200000)
-state3 = odeint(ductmodelsystem, off_state, t3)
 
-t = np.append(t1, t2)
-t = np.append(t,t3)
-state = np.vstack((state1, state2))
-state = np.vstack((state, state3))
+def graph_HCO3_and_Cl(init_state, filename):
+	vr = 0.1
+	t_on, t_off = 20000, 120000
+	t1 = np.linspace(0, t_on) 
+	state1 = odeint(ductmodelsystem, init_state, t1, args=(vr,))
+	on_state = [state1[-1,0],state1[-1,1],state1[-1,2],state1[-1,3], gcftron]
+	t2 = np.linspace(t_on, t_off)
+	state2 = odeint(ductmodelsystem, on_state, t2, args=(vr,))
+	off_state = [state2[-1,0],state2[-1,1],state2[-1,2],state2[-1,3], gcftrbase]
+	t3 = np.linspace(t_off, 200000)
+	state3 = odeint(ductmodelsystem, off_state, t3, args=(vr,))
 
-plt.subplot(2, 1, 1)
-plt.plot(t,state[:,0], 'r-', label = 'b_intra')
-plt.plot(t,state[:,1], 'g-', label = 'b_luminal')
-plt.axvline(x=t_on, color = 'pink', label = 't_on')
-plt.axvline(x=t_off, color = 'purple', label = 't_off')
-plt.axvspan(t_on, t_off, alpha=0.1, color='red')
-plt.legend(loc = 'right')
-plt.ylim((0,155))
-plt.title('Duct Modeling Dif. Eq. \n GCFTR ON in RED')
-plt.ylabel('Bicarb Conc. (mM)')
+	t = np.append(t1, t2)
+	t = np.append(t,t3)
+	state = np.vstack((state1, state2))
+	state = np.vstack((state, state3))
 
-plt.subplot(2, 1, 2)
-plt.plot(t,state[:,2], label = 'c_intra')
-plt.plot(t,(160- state[:,1]), label = 'c_luminal')
-plt.axvline(x=t_on, color = 'pink', label = 't_on')
-plt.axvline(x=t_off, color = 'purple', label = 't_off')
-plt.axvspan(t_on, t_off, alpha=0.1, color='red')
-plt.xlabel('time (min)')
-plt.ylabel('Chloride Conc. (mM)')
-plt.legend(loc = 'right')
-plt.ylim((0,155))
-plt.show()
+	plt.subplot(2, 1, 1)
+	plt.plot(t,state[:,0], 'r-', label = 'HCO3-(intra)')
+	plt.plot(t,state[:,1], 'g-', label = 'HCO3-(luminal)')
+	plt.axvline(x=t_on, color = 'pink', label = 't_on')
+	plt.axvline(x=t_off, color = 'purple', label = 't_off')
+	plt.axvspan(t_on, t_off, alpha=0.1, color='red')
+	plt.legend(loc = 'right')
+	plt.ylim((0,155))
+	plt.title('Duct Modeling Dif. Eq. \n GCFTR ON in RED')
+	plt.ylabel('Bicarb Conc. (mM)')
 
+	plt.subplot(2, 1, 2)
+	plt.plot(t,state[:,2], label = 'Cl(intra)')
+	plt.plot(t,(160- state[:,1]), label = 'Cl(luminal)')
+	plt.axvline(x=t_on, color = 'pink', label = 't_on')
+	plt.axvline(x=t_off, color = 'purple', label = 't_off')
+	plt.axvspan(t_on, t_off, alpha=0.1, color='red')
+	plt.xlabel('time (min)')
+	plt.ylabel('Chloride Conc. (mM)')
+	plt.legend(loc = 'right')
+	plt.ylim((0,155))
 
+	plt.savefig(filename, transparent=True) # store local copy for later use
+	plt.show()
+	return
+
+def vol_rat_plot(init_state, filename):
+	volume_ratios = [10, 1, 0.1, 0.04]
+	states = [None] * len(volume_ratios)
+
+	t_on, t_off = 20000, 120000
+	t1 = np.linspace(0, t_on)
+	t2 = np.linspace(t_on, t_off)
+	t3 = np.linspace(t_off, 200000)
+	t = np.append(t1, t2)
+	t = np.append(t,t3)
+	t /= 20000
+
+	i = 0
+	for vr in volume_ratios:
+		state1 = odeint(ductmodelsystem, init_state, t1, args=(vr,))
+		on_state = [state1[-1,0],state1[-1,1],state1[-1,2],state1[-1,3], gcftron]
+		state2 = odeint(ductmodelsystem, on_state, t2, args=(vr,))
+		off_state = [state2[-1,0],state2[-1,1],state2[-1,2],state2[-1,3], gcftrbase]
+		state3 = odeint(ductmodelsystem, off_state, t3, args=(vr,))
+		state = np.vstack((state1, state2))
+		state = np.vstack((state, state3))
+		states[i] = state
+		i += 1
+
+	j = 0
+	for state in states:
+		plt.plot(t, state[:, 1], label='VR'+str(volume_ratios[j]))
+		j += 1
+
+	plt.xlabel('time (min)')
+	plt.ylabel('HCO3- Conc. (mM)')
+	plt.legend(loc = 'right')
+	plt.ylim((0,155))
+	plt.title('Effect of different duct cell/lumen VR on SS HCO3-')
+	plt.savefig(filename, transparent=True) # store local copy for later use
+	plt.show()
+	return
+
+vol_rat_plot([bi, bl, ci, ni, gcftrbase], 'volumes.png')
+graph_HCO3_and_Cl([bi, bl, ci, ni, gcftrbase], 'nosmoke.png') # 15, 32, 60, 28, 1
+
+'''
+	smoking_penalty_rate = 0.15
+	smoking_state = [bi*smoking_penalty_rate, bl*smoking_penalty_rate, ci, ni, gcftrbase]
+	smoking_state1 = odeint(ductmodelsystem, smoking_state, t1)'''
+	
