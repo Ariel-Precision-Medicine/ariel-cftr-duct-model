@@ -14,6 +14,7 @@ from math import log
 from scipy.integrate import odeint
 import numpy as np
 import matplotlib.pyplot as plt
+import numpy.random as rnd
 
 # Antiporter Fxn (ap(ao,aibo,bi,ka,kb) in original)
 def antiporter(ao,ai,bo,bi,ka,kb):
@@ -68,7 +69,7 @@ gnaleak = 0.4
 jac = 0.025 # should be 0.025
 rat = 0.25
 
-def ductmodelsystem(state, t, vr):
+def ductmodelsystem(state, t, vr, ap_status, apb_status, g_bi, g_cl):
     bi, bl, ci, ni, gcftr = state
     cl = 160 - bl
     eb = nernst_potential(bi, bl)
@@ -82,8 +83,8 @@ def ductmodelsystem(state, t, vr):
     jnbc = knbc*(v-enbc)
     jbcftr = kbcf*(v-eb)
     jccftr = kccf*(v-ec)
-    japl = antiporter(bl,bi,cl,ci,kbi,kcl)*gapl
-    japbl = antiporter(bb,bi,cb,ci,kbi,kcl)*gapbl
+    japl = antiporter(bl,bi,cl,ci,kbi,kcl)*gapl*ap_status
+    japbl = antiporter(bb,bi,cb,ci,kbi,kcl)*gapbl*apb_status
     jbl = (-jbcftr-japl)/vr+jac*rat
     jci = jccftr-japl-japbl
     jcl = (-jccftr+japl)/vr+jac
@@ -101,15 +102,20 @@ def ductmodelsystem(state, t, vr):
 
 def graph_HCO3_and_Cl(init_state, filename):
 	vr = 0.1
+	apb_status = 1
+	ap_status = 1
+	g_bi = 0.2
+	g_cl = 1
+
 	t_on, t_off = 20000, 120000
 	t1 = np.linspace(0, t_on) 
-	state1 = odeint(ductmodelsystem, init_state, t1, args=(vr,))
+	state1 = odeint(ductmodelsystem, init_state, t1, args=(vr,ap_status,apb_status,g_bi,g_cl))
 	on_state = [state1[-1,0],state1[-1,1],state1[-1,2],state1[-1,3], gcftron]
 	t2 = np.linspace(t_on, t_off)
-	state2 = odeint(ductmodelsystem, on_state, t2, args=(vr,))
+	state2 = odeint(ductmodelsystem, on_state, t2, args=(vr,ap_status,apb_status,g_bi,g_cl))
 	off_state = [state2[-1,0],state2[-1,1],state2[-1,2],state2[-1,3], gcftrbase]
 	t3 = np.linspace(t_off, 200000)
-	state3 = odeint(ductmodelsystem, off_state, t3, args=(vr,))
+	state3 = odeint(ductmodelsystem, off_state, t3, args=(vr,ap_status,apb_status,g_bi,g_cl))
 
 	t = np.append(t1, t2)
 	t = np.append(t,t3)
@@ -145,6 +151,8 @@ def graph_HCO3_and_Cl(init_state, filename):
 def vol_rat_plot(init_state, filename):
 	volume_ratios = [10, 1, 0.1, 0.04]
 	states = [None] * len(volume_ratios)
+	apb_status = 1
+	ap_status = 1
 
 	t_on, t_off = 20000, 120000
 	t1 = np.linspace(0, t_on)
@@ -155,18 +163,20 @@ def vol_rat_plot(init_state, filename):
 	t /= 20000
 
 	i = 0
+	# Repeat ODE simulation for each instance of volume ratio
 	for vr in volume_ratios:
-		state1 = odeint(ductmodelsystem, init_state, t1, args=(vr,))
+		state1 = odeint(ductmodelsystem, init_state, t1, args=(vr,ap_status,apb_status,))
 		on_state = [state1[-1,0],state1[-1,1],state1[-1,2],state1[-1,3], gcftron]
-		state2 = odeint(ductmodelsystem, on_state, t2, args=(vr,))
+		state2 = odeint(ductmodelsystem, on_state, t2, args=(vr,ap_status,apb_status,))
 		off_state = [state2[-1,0],state2[-1,1],state2[-1,2],state2[-1,3], gcftrbase]
-		state3 = odeint(ductmodelsystem, off_state, t3, args=(vr,))
+		state3 = odeint(ductmodelsystem, off_state, t3, args=(vr,ap_status,apb_status,))
 		state = np.vstack((state1, state2))
 		state = np.vstack((state, state3))
 		states[i] = state
 		i += 1
 
 	j = 0
+	# Plot each line on the same graph
 	for state in states:
 		plt.plot(t, state[:, 1], label='VR'+str(volume_ratios[j]))
 		j += 1
@@ -180,8 +190,176 @@ def vol_rat_plot(init_state, filename):
 	plt.show()
 	return
 
-vol_rat_plot([bi, bl, ci, ni, gcftrbase], 'volumes.png')
-graph_HCO3_and_Cl([bi, bl, ci, ni, gcftrbase], 'nosmoke.png') # 15, 32, 60, 28, 1
+def graph_antiporters(init_state, filename):
+	vr = 0.1
+	states = [None, None, None]
+
+	t_on, t_off = 20000, 120000
+	t1 = np.linspace(0, t_on)
+	t2 = np.linspace(t_on, t_off)
+	t3 = np.linspace(t_off, 200000)
+	t = np.append(t1, t2)
+	t = np.append(t,t3)
+
+	# Both antiporters on
+	ap_status, apb_status = 1, 1
+	state1 = odeint(ductmodelsystem, init_state, t1, args=(vr,ap_status,apb_status,))
+	on_state = [state1[-1,0],state1[-1,1],state1[-1,2],state1[-1,3], gcftron]
+	state2 = odeint(ductmodelsystem, on_state, t2, args=(vr,ap_status,apb_status,))
+	off_state = [state2[-1,0],state2[-1,1],state2[-1,2],state2[-1,3], gcftrbase]
+	state3 = odeint(ductmodelsystem, off_state, t3, args=(vr,ap_status,apb_status,))
+	state = np.vstack((state1, state2))
+	state = np.vstack((state, state3))
+
+	states[0] = state
+
+	# Both antiporters off
+	ap_status, apb_status = 0, 0
+	state1 = odeint(ductmodelsystem, init_state, t1, args=(vr,ap_status,apb_status,))
+	on_state = [state1[-1,0],state1[-1,1],state1[-1,2],state1[-1,3], gcftron]
+	state2 = odeint(ductmodelsystem, on_state, t2, args=(vr,ap_status,apb_status,))
+	off_state = [state2[-1,0],state2[-1,1],state2[-1,2],state2[-1,3], gcftrbase]
+	state3 = odeint(ductmodelsystem, off_state, t3, args=(vr,ap_status,apb_status,))
+	state = np.vstack((state1, state2))
+	state = np.vstack((state, state3))
+
+	states[1] = state
+
+	# APb off
+	ap_status, apb_status = 0, 1
+	state1 = odeint(ductmodelsystem, init_state, t1, args=(vr,ap_status,apb_status,))
+	on_state = [state1[-1,0],state1[-1,1],state1[-1,2],state1[-1,3], gcftron]
+	state2 = odeint(ductmodelsystem, on_state, t2, args=(vr,ap_status,apb_status,))
+	off_state = [state2[-1,0],state2[-1,1],state2[-1,2],state2[-1,3], gcftrbase]
+	state3 = odeint(ductmodelsystem, off_state, t3, args=(vr,ap_status,apb_status,))
+	state = np.vstack((state1, state2))
+	state = np.vstack((state, state3))
+
+	states[2] = state
+
+	# Graph 3 subplots
+	plt.subplot(3, 1, 1)
+	plt.plot(t,states[0][:,2], 'r-', label = 'HCO3-(intra)')
+	plt.plot(t,states[0][:,1], 'b-', label = 'HCO3-(luminal)')
+	plt.axvline(x=t_on, color = 'pink', label = 't_on')
+	plt.axvline(x=t_off, color = 'purple', label = 't_off')
+	plt.axvspan(t_on, t_off, alpha=0.1, color='red')
+	plt.legend(loc = 'right')
+	plt.ylim((0,155))
+	plt.title('Antiporters ON/OFF')
+	plt.ylabel('Bicarb Conc. (mM)')
+
+	plt.subplot(3, 1, 2)
+	plt.plot(t,states[1][:,2], 'r-', label = 'HCO3-(intra)')
+	plt.plot(t,states[1][:,1], 'b-', label = 'HCO3-(luminal)')
+	plt.axvline(x=t_on, color = 'pink', label = 't_on')
+	plt.axvline(x=t_off, color = 'purple', label = 't_off')
+	plt.axvspan(t_on, t_off, alpha=0.1, color='red')
+	plt.legend(loc = 'right')
+	plt.ylim((0,155))
+	plt.ylabel('Bicarb Conc. (mM)')
+
+	plt.subplot(3, 1, 3)
+	plt.plot(t,states[1][:,2], 'r-', label = 'HCO3-(intra)')
+	plt.plot(t,states[1][:,1], 'b-', label = 'HCO3-(luminal)')
+	plt.axvline(x=t_on, color = 'pink', label = 't_on')
+	plt.axvline(x=t_off, color = 'purple', label = 't_off')
+	plt.axvspan(t_on, t_off, alpha=0.1, color='red')
+	plt.legend(loc = 'right')
+	plt.ylim((0,155))
+	plt.ylabel('Bicarb Conc. (mM)')
+
+	plt.savefig(filename, transparent = True)
+	plt.show()
+
+	return
+
+def graph_logplots(init_state, filename):
+	fig = plt.figure()
+
+	vr = 0.1
+	apb_status = 1
+	ap_status = 1
+	g_bi = [0.001, 0.2, 1]
+	g_cl = [0.001, 0.01, 1]
+
+	result_bl = []
+
+	for bi_option in g_bi:
+		for cl_option in g_cl:
+			t_on, t_off = 20000, 120000
+			t1 = np.linspace(0, t_on) 
+			state1 = odeint(ductmodelsystem, init_state, t1, args=(vr,ap_status,apb_status,bi_option,cl_option))
+			on_state = [state1[-1,0],state1[-1,1],state1[-1,2],state1[-1,3], gcftron]
+			t2 = np.linspace(t_on, t_off)
+			state2 = odeint(ductmodelsystem, on_state, t2, args=(vr,ap_status,apb_status,bi_option,cl_option))
+			off_state = [state2[-1,0],state2[-1,1],state2[-1,2],state2[-1,3], gcftrbase]
+			t3 = np.linspace(t_off, 200000)
+			state3 = odeint(ductmodelsystem, off_state, t3, args=(vr,ap_status,apb_status,bi_option,cl_option))
+
+			t = np.append(t1, t2)
+			t = np.append(t,t3)
+			state = np.vstack((state1, state2))
+			state = np.vstack((state, state3))
+
+			result_bl.append(state[-1,1])
+
+	print(result_bl)
+
+	line_001 = result_bl[::3]
+	line_02 = result_bl[1::3]
+	line_1 = result_bl[2::3]
+
+	print(line_001)
+	print(line_02)
+	print(line_1)
+
+
+
+
+	plt.subplot(2, 1, 1)
+	plt.plot(t,state[:,0], 'r-', label = 'HCO3-(intra)')
+	plt.plot(t,state[:,1], 'g-', label = 'HCO3-(luminal)')
+	plt.axvline(x=t_on, color = 'pink', label = 't_on')
+	plt.axvline(x=t_off, color = 'purple', label = 't_off')
+	plt.axvspan(t_on, t_off, alpha=0.1, color='red')
+	plt.legend(loc = 'right')
+	plt.ylim((0,155))
+	plt.title('Duct Modeling Dif. Eq. \n GCFTR ON in RED')
+	plt.ylabel('Bicarb Conc. (mM)')
+
+	plt.subplot(221)
+	plt.plot(g_bi, line_001, label = str(g_bi[0]))
+	plt.plot(g_bi, line_02, label = str(g_bi[1]))
+	plt.plot(g_bi, line_1, label = str(g_bi[2]))
+	plt.ylabel('Luminal Bicarb')
+	plt.xlabel('gcftr (bi)')
+	plt.legend(loc = 'right')
+
+
+	plt.subplot(222)
+	plt.imshow(rnd.random((100, 100)))
+
+
+	plt.subplot(223)
+	plt.imshow(rnd.random((100, 100)))
+
+
+	plt.subplot(224)
+	plt.imshow(rnd.random((100, 100)))
+
+	plt.savefig(filename, transparent = True)
+	plt.show()
+	return
+
+
+### Not Working ###
+#graph_antiporters([bi, bl, ci, ni, gcftrbase], 'antiporters.png')
+graph_logplots([bi, bl, ci, ni, gcftrbase], 'quadrant.png')
+
+### Working ###
+#vol_rat_plot([bi, bl, ci, ni, gcftrbase], 'volumes.png')
+#graph_HCO3_and_Cl([bi, bl, ci, ni, gcftrbase], 'smoke.png') # 15, 32, 60, 28, 1
 
 '''
 	smoking_penalty_rate = 0.15
