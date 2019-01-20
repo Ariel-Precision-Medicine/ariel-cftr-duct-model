@@ -58,7 +58,7 @@ bl = 32
 cl = 160 - bl
 gcftron = 1
 gcftrbase = 0.00007
-ek = -0.085 # should be -0.085, but system behaves better with this number
+ek = -0.085 
 gk = 1
 cap = 1
 gnak = 3.125
@@ -66,23 +66,25 @@ np0 = 25
 epump = -0.2
 ionstr = 160
 gnaleak = 0.4
-jac = 0.025 # should be 0.025
+jac = 0.025 
 rat = 0.25
 
-def ductmodelsystem(state, t, vr, ap_status, apb_status, g_bi, g_cl):
+# cond_adj = 1 # adjust for functionality of different variants of CFTR, Cutting Paper
+
+def ductmodelsystem(state, t, vr, ap_status, apb_status, g_bi, g_cl, cond_adj):
     bi, bl, ci, ni, gcftr = state
     cl = 160 - bl
     eb = nernst_potential(bi, bl)
     enbc = nernst_potential((bi**2*ni), (bb**2*nb))
     ec = nernst_potential(ci, cl)
     ena = nernst_potential(nb, ni)
-    kccf = eff_perm(ci,cl)*gcftr*g_cl
+    kccf = eff_perm(ci,cl)*gcftr*g_cl 
     kbcf = eff_perm(bi, bl)*gcftr*g_bi
     knbc = gnbc
     v = (knbc*enbc+kbcf*eb+kccf*ec+gk*ek+gnaleak*ena)/(knbc+kbcf+kccf+gk)
     jnbc = knbc*(v-enbc)
     jbcftr = kbcf*(v-eb)
-    jccftr = kccf*(v-ec)
+    jccftr = kccf*(v-ec) * cond_adj 
     japl = antiporter(bl,bi,cl,ci,kbi,kcl)*gapl*ap_status
     japbl = antiporter(bb,bi,cb,ci,kbi,kcl)*gapbl*apb_status
     jbl = (-jbcftr-japl)/vr+jac*rat
@@ -106,16 +108,17 @@ def graph_HCO3_and_Cl(init_state, filename):
 	ap_status = 1
 	g_bi = 0.2
 	g_cl = 1
+	cond_adj = 1
 
 	t_on, t_off = 20000, 120000
 	t1 = np.linspace(0, t_on) 
-	state1 = odeint(ductmodelsystem, init_state, t1, args=(vr,ap_status,apb_status,g_bi,g_cl))
+	state1 = odeint(ductmodelsystem, init_state, t1, args=(vr,ap_status,apb_status,g_bi,g_cl,cond_adj,))
 	on_state = [state1[-1,0],state1[-1,1],state1[-1,2],state1[-1,3], gcftron]
 	t2 = np.linspace(t_on, t_off)
-	state2 = odeint(ductmodelsystem, on_state, t2, args=(vr,ap_status,apb_status,g_bi,g_cl))
+	state2 = odeint(ductmodelsystem, on_state, t2, args=(vr,ap_status,apb_status,g_bi,g_cl,cond_adj,))
 	off_state = [state2[-1,0],state2[-1,1],state2[-1,2],state2[-1,3], gcftrbase]
 	t3 = np.linspace(t_off, 200000)
-	state3 = odeint(ductmodelsystem, off_state, t3, args=(vr,ap_status,apb_status,g_bi,g_cl))
+	state3 = odeint(ductmodelsystem, off_state, t3, args=(vr,ap_status,apb_status,g_bi,g_cl,cond_adj,))
 
 	t = np.append(t1, t2)
 	t = np.append(t,t3)
@@ -153,6 +156,7 @@ def vol_rat_plot(init_state, filename):
 	states = [None] * len(volume_ratios)
 	apb_status = 1
 	ap_status = 1
+	cond_adj = 1
 
 	t_on, t_off = 20000, 120000
 	t1 = np.linspace(0, t_on)
@@ -165,11 +169,11 @@ def vol_rat_plot(init_state, filename):
 	i = 0
 	# Repeat ODE simulation for each instance of volume ratio
 	for vr in volume_ratios:
-		state1 = odeint(ductmodelsystem, init_state, t1, args=(vr,ap_status,apb_status,))
+		state1 = odeint(ductmodelsystem, init_state, t1, args=(vr,ap_status,apb_status, g_bi, g_cl, cond_adj,))
 		on_state = [state1[-1,0],state1[-1,1],state1[-1,2],state1[-1,3], gcftron]
-		state2 = odeint(ductmodelsystem, on_state, t2, args=(vr,ap_status,apb_status,))
+		state2 = odeint(ductmodelsystem, on_state, t2, args=(vr,ap_status,apb_status, g_bi, g_cl, cond_adj,))
 		off_state = [state2[-1,0],state2[-1,1],state2[-1,2],state2[-1,3], gcftrbase]
-		state3 = odeint(ductmodelsystem, off_state, t3, args=(vr,ap_status,apb_status,))
+		state3 = odeint(ductmodelsystem, off_state, t3, args=(vr,ap_status,apb_status,g_bi, g_cl, cond_adj,))
 		state = np.vstack((state1, state2))
 		state = np.vstack((state, state3))
 		states[i] = state
@@ -193,6 +197,7 @@ def vol_rat_plot(init_state, filename):
 def graph_antiporters(init_state, filename):
 	vr = 0.1
 	states = [None, None, None]
+	cond_adj = 1
 
 	t_on, t_off = 20000, 120000
 	t1 = np.linspace(0, t_on)
@@ -203,11 +208,11 @@ def graph_antiporters(init_state, filename):
 
 	# Both antiporters on
 	ap_status, apb_status = 1, 1
-	state1 = odeint(ductmodelsystem, init_state, t1, args=(vr,ap_status,apb_status,))
+	state1 = odeint(ductmodelsystem, init_state, t1, args=(vr,ap_status,apb_status,g_bi, g_cl, cond_adj,))
 	on_state = [state1[-1,0],state1[-1,1],state1[-1,2],state1[-1,3], gcftron]
-	state2 = odeint(ductmodelsystem, on_state, t2, args=(vr,ap_status,apb_status,))
+	state2 = odeint(ductmodelsystem, on_state, t2, args=(vr,ap_status,apb_status,g_bi, g_cl, cond_adj,))
 	off_state = [state2[-1,0],state2[-1,1],state2[-1,2],state2[-1,3], gcftrbase]
-	state3 = odeint(ductmodelsystem, off_state, t3, args=(vr,ap_status,apb_status,))
+	state3 = odeint(ductmodelsystem, off_state, t3, args=(vr,ap_status,apb_status,g_bi, g_cl, cond_adj,))
 	state = np.vstack((state1, state2))
 	state = np.vstack((state, state3))
 
@@ -215,11 +220,11 @@ def graph_antiporters(init_state, filename):
 
 	# Both antiporters off
 	ap_status, apb_status = 0, 0
-	state1 = odeint(ductmodelsystem, init_state, t1, args=(vr,ap_status,apb_status,))
+	state1 = odeint(ductmodelsystem, init_state, t1, args=(vr,ap_status,apb_status,g_bi, g_cl, cond_adj,))
 	on_state = [state1[-1,0],state1[-1,1],state1[-1,2],state1[-1,3], gcftron]
-	state2 = odeint(ductmodelsystem, on_state, t2, args=(vr,ap_status,apb_status,))
+	state2 = odeint(ductmodelsystem, on_state, t2, args=(vr,ap_status,apb_status,g_bi, g_cl, cond_adj,))
 	off_state = [state2[-1,0],state2[-1,1],state2[-1,2],state2[-1,3], gcftrbase]
-	state3 = odeint(ductmodelsystem, off_state, t3, args=(vr,ap_status,apb_status,))
+	state3 = odeint(ductmodelsystem, off_state, t3, args=(vr,ap_status,apb_status,g_bi, g_cl, cond_adj,))
 	state = np.vstack((state1, state2))
 	state = np.vstack((state, state3))
 
@@ -227,11 +232,11 @@ def graph_antiporters(init_state, filename):
 
 	# APb off
 	ap_status, apb_status = 0, 1
-	state1 = odeint(ductmodelsystem, init_state, t1, args=(vr,ap_status,apb_status,))
+	state1 = odeint(ductmodelsystem, init_state, t1, args=(vr,ap_status,apb_status,g_bi, g_cl, cond_adj,))
 	on_state = [state1[-1,0],state1[-1,1],state1[-1,2],state1[-1,3], gcftron]
-	state2 = odeint(ductmodelsystem, on_state, t2, args=(vr,ap_status,apb_status,))
+	state2 = odeint(ductmodelsystem, on_state, t2, args=(vr,ap_status,apb_status,g_bi, g_cl, cond_adj,))
 	off_state = [state2[-1,0],state2[-1,1],state2[-1,2],state2[-1,3], gcftrbase]
-	state3 = odeint(ductmodelsystem, off_state, t3, args=(vr,ap_status,apb_status,))
+	state3 = odeint(ductmodelsystem, off_state, t3, args=(vr,ap_status,apb_status,g_bi, g_cl, cond_adj,))
 	state = np.vstack((state1, state2))
 	state = np.vstack((state, state3))
 
@@ -274,7 +279,7 @@ def graph_antiporters(init_state, filename):
 
 	return
 
-def graph_logplots(init_state, filename):
+def graph_line_plots(init_state, filename):
 	fig = plt.figure()
 
 	vr = 0.1
@@ -282,6 +287,7 @@ def graph_logplots(init_state, filename):
 	ap_status = 1
 	g_bi = [0.001, 0.2, 1]
 	g_cl = [0.001, 0.01, 1]
+	cond_adj = 1
 
 	result_bl = []
 
@@ -289,13 +295,13 @@ def graph_logplots(init_state, filename):
 		for cl_option in g_cl:
 			t_on, t_off = 20000, 120000
 			t1 = np.linspace(0, t_on) 
-			state1 = odeint(ductmodelsystem, init_state, t1, args=(vr,ap_status,apb_status,bi_option,cl_option))
+			state1 = odeint(ductmodelsystem, init_state, t1, args=(vr,ap_status,apb_status,bi_option,cl_option, cond_adj,))
 			on_state = [state1[-1,0],state1[-1,1],state1[-1,2],state1[-1,3], gcftron]
 			t2 = np.linspace(t_on, t_off)
-			state2 = odeint(ductmodelsystem, on_state, t2, args=(vr,ap_status,apb_status,bi_option,cl_option))
+			state2 = odeint(ductmodelsystem, on_state, t2, args=(vr,ap_status,apb_status,bi_option,cl_option, cond_adj,))
 			off_state = [state2[-1,0],state2[-1,1],state2[-1,2],state2[-1,3], gcftrbase]
 			t3 = np.linspace(t_off, 200000)
-			state3 = odeint(ductmodelsystem, off_state, t3, args=(vr,ap_status,apb_status,bi_option,cl_option))
+			state3 = odeint(ductmodelsystem, off_state, t3, args=(vr,ap_status,apb_status,bi_option,cl_option, cond_adj,))
 
 			t = np.append(t1, t2)
 			t = np.append(t,t3)
@@ -306,6 +312,8 @@ def graph_logplots(init_state, filename):
 
 	print(result_bl)
 
+	# Process results collect from nested for loops
+	# Place each 3rd item in appropriate group
 	line_001 = result_bl[::3]
 	line_02 = result_bl[1::3]
 	line_1 = result_bl[2::3]
@@ -352,10 +360,85 @@ def graph_logplots(init_state, filename):
 	plt.show()
 	return
 
+def visualize_conductance_effect(init_state, filename):
+	vr = 0.1
+	apb_status = 1
+	ap_status = 1
+	g_bi = 0.2
+	g_cl = 1
+	cond_adj = [0.054, 0.076, 0.151, 0.224, 0.563, 1]
+	var_names = ['Q98R','F311L','F1099L', 'P5L', 'R31L', 'WT']
+	states = [None] * len(cond_adj)
 
-### Not Working ###
+	t_on, t_off = 20000, 120000
+	t1 = np.linspace(0, t_on)
+	t2 = np.linspace(t_on, t_off)
+	t3 = np.linspace(t_off, 200000)
+	t = np.append(t1, t2)
+	t = np.append(t,t3)
+	t /= 2000
+	t_on /= 2000
+	t_off /= 2000
+
+	i = 0
+	# Repeat ODE for different conductance values
+	for condition in cond_adj:
+		state1 = odeint(ductmodelsystem, init_state, t1, args=(vr,ap_status,apb_status,g_bi,g_cl,condition,))
+		on_state = [state1[-1,0],state1[-1,1],state1[-1,2],state1[-1,3], gcftron]
+		state2 = odeint(ductmodelsystem, on_state, t2, args=(vr,ap_status,apb_status,g_bi,g_cl,condition,))
+		off_state = [state2[-1,0],state2[-1,1],state2[-1,2],state2[-1,3], gcftrbase]
+		state3 = odeint(ductmodelsystem, off_state, t3, args=(vr,ap_status,apb_status,g_bi,g_cl,condition,))
+		state = np.vstack((state1, state2))
+		state = np.vstack((state, state3))
+		states[i] = state
+		i += 1
+
+	j = 0
+	# Plot lines
+	for state in states:
+		plt.subplot(2, 1, 1)
+		plt.plot(t,state[:,0], color = (1*cond_adj[j],0,0,1*cond_adj[j]), label = '(intra) ' + var_names[j] + '(' +str(round(cond_adj[j]*100)) +'%)' )
+		plt.plot(t,state[:,1], color = (0,1*cond_adj[j],0,1*cond_adj[j]), label = '(luminal) ' +  var_names[j] + '(' +str(round(cond_adj[j]*100)) +'%)')
+
+		plt.subplot(2, 1, 2)
+		plt.plot(t,state[:,2], color = (0,0,1*cond_adj[j],1*cond_adj[j]), label = '(intra) '+  var_names[j] + '(' +str(round(cond_adj[j]*100)) +'%)')
+		plt.plot(t,(160- state[:,1]), color = (1*cond_adj[j],1*cond_adj[j], 0,1*cond_adj[j]), label = '(luminal) '+  var_names[j] + '(' +str(round(cond_adj[j]*100)) +'%)')
+
+		plt.ylim((0,155))
+		j += 1
+
+	plt.subplot(2, 1, 1)
+	plt.axvline(x=t_on, color = 'pink', label = 't_on')
+	plt.axvline(x=t_off, color = 'purple', label = 't_off')
+	plt.axvspan(t_on, t_off, alpha=0.1, color='red')
+	plt.axvspan(t[0], t_on, alpha=0.1, color='blue')
+	plt.axvspan(t_off, t[-1], alpha=0.1, color='blue')
+	plt.legend(loc = 'right', bbox_to_anchor= (1.1,0.5))
+	plt.ylim((0,155))
+	plt.title('Variant Conductivity Differences in Duct Modeling Dif. Eq. \n GCFTR ON in RED // GCFTR OFF in BLUE')
+	plt.ylabel('Bicarb Conc. (mM)')
+
+	plt.subplot(2, 1, 2)
+	plt.axvline(x=t_on, color = 'pink', label = 't_on')
+	plt.axvline(x=t_off, color = 'purple', label = 't_off')
+	plt.axvspan(t_on, t_off, alpha=0.1, color='red')
+	plt.axvspan(t[0], t_on, alpha=0.1, color='blue')
+	plt.axvspan(t_off, t[-1], alpha=0.1, color='blue')
+	plt.ylabel('Chloride Conc. (mM)')
+	plt.legend(loc = 'right', bbox_to_anchor=(1.1,0.5))
+	plt.xlabel('time (min)')
+
+
+
+	plt.savefig(filename, transparent=True) # store local copy for later use
+	plt.show()
+	return
+
+
+### Not Working (debugging needed or unfinished) ###
 #graph_antiporters([bi, bl, ci, ni, gcftrbase], 'antiporters.png')
-graph_logplots([bi, bl, ci, ni, gcftrbase], 'quadrant.png')
+#graph_line_plots([bi, bl, ci, ni, gcftrbase], 'quadrant.png')
+#visualize_conductance_effect([bi, bl, ci, ni, gcftrbase], 'conductance_options.png')
 
 ### Working ###
 #vol_rat_plot([bi, bl, ci, ni, gcftrbase], 'volumes.png')
