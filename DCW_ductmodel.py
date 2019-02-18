@@ -438,7 +438,7 @@ def visualize_conductance_effect(init_state, filename):
 ### Not Working (debugging needed or unfinished) ###
 #graph_antiporters([bi, bl, ci, ni, gcftrbase], 'antiporters.png')
 #graph_line_plots([bi, bl, ci, ni, gcftrbase], 'quadrant.png')
-#visualize_conductance_effect([bi, bl, ci, ni, gcftrbase], 'conductance_options.png')
+visualize_conductance_effect([bi, bl, ci, ni, gcftrbase], 'conductance_options.png')
 
 ### Working ###
 #vol_rat_plot([bi, bl, ci, ni, gcftrbase], 'volumes.png')
