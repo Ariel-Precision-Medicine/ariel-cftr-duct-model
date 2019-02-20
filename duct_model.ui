@@ -43,7 +43,7 @@
     </property>
     <layout class="QVBoxLayout" name="verticalLayout_3">
      <item>
-      <widget class="QLabel" name="label_3">
+      <widget class="QLabel" name="label_ariel_logo">
        <property name="text">
         <string/>
        </property>
@@ -61,9 +61,9 @@
      <item>
       <widget class="QTabWidget" name="tabWidget">
        <property name="currentIndex">
-        <number>2</number>
+        <number>0</number>
        </property>
-       <widget class="QWidget" name="tab">
+       <widget class="QWidget" name="patient_variants">
         <attribute name="title">
          <string>Patient Variants</string>
         </attribute>
@@ -93,7 +93,7 @@
              </spacer>
             </item>
             <item>
-             <widget class="QLabel" name="label">
+             <widget class="QLabel" name="label_variant_input_area">
               <property name="text">
                <string>Variant Input Area</string>
               </property>
@@ -103,7 +103,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QComboBox" name="comboBox">
+             <widget class="QComboBox" name="comboBox_variant_input_area">
               <property name="layoutDirection">
                <enum>Qt::LeftToRight</enum>
               </property>
@@ -118,7 +118,7 @@
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout">
               <item>
-               <widget class="QPushButton" name="pushButton_2">
+               <widget class="QPushButton" name="pushButton_add_variant">
                 <property name="toolTip">
                  <string>Add Variant to List</string>
                 </property>
@@ -140,7 +140,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QPushButton" name="pushButton">
+               <widget class="QPushButton" name="pushButton_remove_variant">
                 <property name="toolTip">
                  <string>Remove variant from list</string>
                 </property>
@@ -168,14 +168,14 @@
              </spacer>
             </item>
             <item>
-             <widget class="QLabel" name="label_2">
+             <widget class="QLabel" name="label_wt_functionality">
               <property name="text">
                <string>% WT Functionality</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QProgressBar" name="progressBar">
+             <widget class="QProgressBar" name="progressBar_wt_functionality">
               <property name="value">
                <number>100</number>
               </property>
@@ -195,7 +195,7 @@
              </spacer>
             </item>
             <item>
-             <widget class="QPushButton" name="pushButton_3">
+             <widget class="QPushButton" name="pushButton_load_variants">
               <property name="text">
                <string>Load Variants into Model</string>
               </property>
@@ -217,7 +217,7 @@
            </layout>
           </item>
           <item>
-           <widget class="QPlainTextEdit" name="plainTextEdit">
+           <widget class="QPlainTextEdit" name="plainTextEdit_patient_variants">
             <property name="readOnly">
              <bool>true</bool>
             </property>
@@ -226,7 +226,7 @@
          </layout>
         </widget>
        </widget>
-       <widget class="QWidget" name="tab_2">
+       <widget class="QWidget" name="model_inputs">
         <attribute name="title">
          <string>Model Inputs</string>
         </attribute>
@@ -249,14 +249,14 @@
           <item row="0" column="1">
            <layout class="QHBoxLayout" name="horizontalLayout_3">
             <item>
-             <widget class="QRadioButton" name="radioButton">
+             <widget class="QRadioButton" name="radioButton_antiporter_on">
               <property name="text">
                <string>On</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QRadioButton" name="radioButton_2">
+             <widget class="QRadioButton" name="radioButton_antiporter_off">
               <property name="text">
                <string>Off</string>
               </property>
@@ -265,105 +265,105 @@
            </layout>
           </item>
           <item row="6" column="0">
-           <widget class="QLabel" name="label_10">
+           <widget class="QLabel" name="label_trigger_update">
             <property name="text">
              <string>Trigger Update</string>
             </property>
            </widget>
           </item>
           <item row="1" column="0">
-           <widget class="QLabel" name="label_6">
+           <widget class="QLabel" name="label_intra_hco3">
             <property name="text">
              <string>Intracellular HCO3-</string>
             </property>
            </widget>
           </item>
           <item row="6" column="1">
-           <widget class="QPushButton" name="pushButton_4">
+           <widget class="QPushButton" name="pushButton_trigger_update">
             <property name="text">
              <string>Update</string>
             </property>
            </widget>
           </item>
           <item row="3" column="2">
-           <widget class="QLabel" name="label_13">
+           <widget class="QLabel" name="label_intra_cl_2">
             <property name="text">
              <string>default_cl</string>
             </property>
            </widget>
           </item>
           <item row="2" column="1">
-           <widget class="QSlider" name="horizontalSlider_2">
+           <widget class="QSlider" name="horizontalSlider_lum_hco3">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
             </property>
            </widget>
           </item>
           <item row="4" column="0">
-           <widget class="QLabel" name="label_9">
+           <widget class="QLabel" name="label_intra_na">
             <property name="text">
              <string>Intracellular Na+</string>
             </property>
            </widget>
           </item>
           <item row="2" column="0">
-           <widget class="QLabel" name="label_7">
+           <widget class="QLabel" name="label_lum_hco3">
             <property name="text">
              <string>Luminal HCO3-</string>
             </property>
            </widget>
           </item>
           <item row="3" column="1">
-           <widget class="QSlider" name="horizontalSlider_3">
+           <widget class="QSlider" name="horizontalSlider_intra_cl">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
             </property>
            </widget>
           </item>
           <item row="4" column="1">
-           <widget class="QSlider" name="horizontalSlider_4">
+           <widget class="QSlider" name="horizontalSlider_intra_na">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
             </property>
            </widget>
           </item>
           <item row="4" column="2">
-           <widget class="QLabel" name="label_14">
+           <widget class="QLabel" name="label_intra_na_value">
             <property name="text">
              <string>default_na</string>
             </property>
            </widget>
           </item>
           <item row="3" column="0">
-           <widget class="QLabel" name="label_8">
+           <widget class="QLabel" name="label_intra_cl">
             <property name="text">
              <string>Intracellular Cl-</string>
             </property>
            </widget>
           </item>
           <item row="0" column="0">
-           <widget class="QLabel" name="label_5">
+           <widget class="QLabel" name="label_antiporters">
             <property name="text">
              <string>Antiporters</string>
             </property>
            </widget>
           </item>
           <item row="1" column="2">
-           <widget class="QLabel" name="label_11">
+           <widget class="QLabel" name="label_intra_hco3_value">
             <property name="text">
              <string>default_bi</string>
             </property>
            </widget>
           </item>
           <item row="2" column="2">
-           <widget class="QLabel" name="label_12">
+           <widget class="QLabel" name="label_lum_hco3_value">
             <property name="text">
              <string>default_bl</string>
             </property>
            </widget>
           </item>
           <item row="1" column="1">
-           <widget class="QSlider" name="horizontalSlider">
+           <widget class="QSlider" name="horizontalSlider_intra_hco3">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
             </property>
@@ -411,7 +411,7 @@
          </layout>
         </widget>
        </widget>
-       <widget class="QWidget" name="tab_4">
+       <widget class="QWidget" name="graph">
         <attribute name="title">
          <string>HCO3(−) Secretion</string>
         </attribute>
@@ -461,11 +461,11 @@
          </layout>
         </widget>
        </widget>
-       <widget class="QWidget" name="tab_5">
+       <widget class="QWidget" name="clinical_suggestions">
         <attribute name="title">
          <string>Clinical Suggestions</string>
         </attribute>
-        <widget class="QPlainTextEdit" name="plainTextEdit_2">
+        <widget class="QPlainTextEdit" name="plainTextEdit_clinical_suggestions">
          <property name="geometry">
           <rect>
            <x>10</x>
@@ -476,7 +476,7 @@
          </property>
         </widget>
        </widget>
-       <widget class="QWidget" name="tab_3">
+       <widget class="QWidget" name="acinar_model">
         <attribute name="title">
          <string>Acinar Cell Model</string>
         </attribute>
@@ -485,7 +485,7 @@
           <rect>
            <x>50</x>
            <y>30</y>
-           <width>511</width>
+           <width>631</width>
            <height>321</height>
           </rect>
          </property>
