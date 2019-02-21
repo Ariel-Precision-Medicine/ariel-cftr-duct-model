@@ -194,26 +194,6 @@
               </property>
              </spacer>
             </item>
-            <item>
-             <widget class="QPushButton" name="pushButton_load_variants">
-              <property name="text">
-               <string>Load Variants into Model</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <spacer name="verticalSpacer_4">
-              <property name="orientation">
-               <enum>Qt::Vertical</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>20</width>
-                <height>40</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
            </layout>
           </item>
           <item>
@@ -449,14 +429,23 @@
               <height>250</height>
              </size>
             </property>
+            <widget class="QLabel" name="label_current_graph">
+             <property name="geometry">
+              <rect>
+               <x>10</x>
+               <y>0</y>
+               <width>581</width>
+               <height>321</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>no graph loaded</string>
+             </property>
+            </widget>
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButton_5">
-            <property name="text">
-             <string>PushButton</string>
-            </property>
-           </widget>
+           <widget class="QComboBox" name="comboBox_graph_options"/>
           </item>
          </layout>
         </widget>

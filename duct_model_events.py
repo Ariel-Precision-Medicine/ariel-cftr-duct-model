@@ -9,7 +9,7 @@ Use this as a tool to observe mechanistic view of duct cell
 Developed by Ariel Precision Medicine
 '''
 
-import sys
+import os,sys
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
@@ -36,7 +36,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 		self.duct_model_default_inputs = init_cond
 
 		# Graphing Options
-		self.graph_ops = ['-', 'GCFTR', 'Volume Ratios', 'Antiporters']
+		self.graph_ops = ['-', 'Variant Impact', 'GCFTR', 'Volume Ratios', 'Antiporters']
+		self.comboBox_graph_options.addItems(self.graph_ops)
 
 		# Variant Options
 		self.variant_ops = pd.read_csv('cutting_variants.csv')['variant']
@@ -55,18 +56,30 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 		# Connect User Actions
 		self.connect_elements()
 
-	def string_of_variants(self, variant_list):
-		output_string = ''
-		for item in variant_list:
-			output_string += (item + ' %f' % round(self.variant_dict[item],2) + '%' + '\n')
-		return output_string
-
 	def connect_elements(self):
 		'''
 		Connect GUI widgets to their interaction and update functions
 		'''
 		self.pushButton_add_variant.clicked.connect(self.add_variant)
 		self.pushButton_remove_variant.clicked.connect(self.remove_variant)
+		self.comboBox_graph_options.currentIndexChanged.connect(self.update_graph)
+
+	def update_graph(self):
+		self.graph_type = self.comboBox_graph_options.currentText()
+		self.label_current_graph.setText('Graphing Embedding Under Development')
+		# self.pixmap = QPixmap(os.getcwd() + "/conductance_options.png")
+		# self.pixmap = self.pixmap.scaled(581, 321, QtCore.Qt.KeepAspectRatio)
+		# self.label_current_graph.setPixmap(self.pixmap)
+
+		self.loaded_vars = dict()
+		for item in self.patient_variants:
+			self.loaded_vars[item] = self.variant_dict[item]
+
+		if self.graph_type != '-':
+			if self.graph_type == 'Variant Impact':
+				graph_generation(self.graph_type, init_cond, variant_impact = self.loaded_vars)
+			else:
+				graph_generation(self.graph_type, init_cond)
 
 	def update_wt_func(self):
 		self.progressBar_wt_functionality.setValue(self.wt_total)
@@ -83,6 +96,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 			impact_percentage = 100
 			print('Variants perform above expected WT functionality by %f percent' % (impact_percentage-100))
 		return impact_percentage
+
+	def string_of_variants(self, variant_list):
+		overall_avg = str(self.collect_variant_impact())
+		output_string = ''
+		for item in variant_list:
+			output_string += (item + ' %f' % round(self.variant_dict[item],2) + '%' + '\n')
+		output_string += 'Variant Mean = ' + overall_avg + ' %'
+		return output_string
 
 	def add_variant(self):
 		variant = self.comboBox_variant_input_area.currentText()

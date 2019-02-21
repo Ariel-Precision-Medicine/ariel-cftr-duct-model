@@ -89,7 +89,7 @@ def duct_model_system(t, y, cond):
 	bi0 = cond['bi0']
 
 	# Unpack Added Variables
-	cond_adj = init_cond['cond_adj']
+	cond_adj = cond['cond_adj']
 
 	# Nernst Potentials
 	eb = nernst_potential(bi, bl)
@@ -122,7 +122,7 @@ def duct_model_system(t, y, cond):
 
 	jbl = (-jbcftr-japl)/vr+jac*rat
 	jci = jccftr-japl-japbl
-	jcl = (-jccftr+japl)/vr+jac
+	jcl = ((-jccftr+japl)/vr+jac) 
 	jlum = (jcl+jbl)/ionstr
 	jnak = gnak*(v-epump)*(ni/np0)**3
 	jnaleak = gnaleak*(v-ena)
