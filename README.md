@@ -7,13 +7,17 @@ Paper can be found online here: https://pdfs.semanticscholar.org/b312/3f29dbb270
 
 Model has been translated from XPPAUT to Python for flexibility and future use.
 
+Variant functionality has not been rigorously verified, but source is Cutting Paper for residual CFTR fxn found here: https://www.ncbi.nlm.nih.gov/pubmed/29805046
+
 Dependencies:
 * Python 3
 * NumPy
 * SciPy
 * Matplotlib
+* Pandas
+* PyQt5
 
 Run using:
 ```
-python DCW_ductmodel.py
+python3 duct_model_events.py
 ```
