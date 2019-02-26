@@ -28,7 +28,7 @@ init_cond = {'g_bi': 0.2, 'g_cl': 1, 'zeta': 0.05,
 			  'rat': 0.25, 'cond_adj': 1, 'vr': 0.1, 'apb_status': True,
 			  'ap_status': True, 'gcftr': 0.00007}
 
-# Antiporter Fxn (ap(ao,aibo,bi,ka,kb) in original)
+# Antiporter Fxn (ap(ao,ai,bo,bi,ka,kb) in original)
 def antiporter(ao,ai,bo,bi,ka,kb):
     numerator = ao*bi-bo*ai
     denominator = (ka*kb*((1+ai/ka+bi/kb)*(ao/ka+bo/kb)+\
@@ -38,7 +38,7 @@ def antiporter(ao,ai,bo,bi,ka,kb):
 # Effective Permeability Fxn (g(xi,xo) in original)
 # Linearization of the Constant Field Eqn
 def eff_perm(xi,xo):
-    return (xi*xo*log(xi/xo)/(xi-xo))
+    return (xi*xo*np.log(xi/xo)/(xi-xo)) # Natural Log
 
 # Nernst Potential Fxn
 def nernst_potential(a,b):
@@ -46,7 +46,7 @@ def nernst_potential(a,b):
     ideal_gas = 8.31451
     faraday_cst = 96485
     body_temp = 310 #K
-    return (ideal_gas*body_temp/faraday_cst)*log(a/b)
+    return (ideal_gas*body_temp/faraday_cst)*np.log(a/b) # Natural Log
 
 def duct_model_system(t, y, cond):
 	# Unpack variables to be integrated
