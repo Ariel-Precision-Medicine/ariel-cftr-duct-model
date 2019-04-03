@@ -36,7 +36,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 		self.duct_model_default_inputs = init_cond
 
 		# Graphing Options
-		self.graph_ops = ['-', 'Variant Impact', 'GCFTR', 'Volume Ratios', 'Antiporters']
+		self.graph_ops = ['-', 'Variant Impact', 'GCFTR', 'Volume Ratios', 'Antiporters', 'Smoking', 'Smoking & Variants']
 		self.comboBox_graph_options.addItems(self.graph_ops)
 
 		# Variant Options
@@ -78,6 +78,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 		if self.graph_type != '-':
 			if self.graph_type == 'Variant Impact':
 				graph_generation(self.graph_type, init_cond, variant_impact = self.loaded_vars)
+			elif self.graph_type == 'Smoking':
+				graph_generation(self.graph_type, init_cond, smoking_status = 'light')
+			elif self.graph_type == 'Smoking & Variants':
+				graph_generation(self.graph_type, init_cond, variant_impact = self.loaded_vars, smoking_status = 'light')
 			else:
 				graph_generation(self.graph_type, init_cond)
 

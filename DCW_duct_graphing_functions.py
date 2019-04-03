@@ -18,7 +18,7 @@ import numpy.random as rnd
 import copy
 from DCW_duct_model import duct_model_system, init_cond
 
-def graph_generation(graph_type, input_dict, variant_impact = None):
+def graph_generation(graph_type, input_dict, variant_impact = None, smoking_status = None):
 	filename = None
 	if graph_type == 'GCFTR':
 		filename = graph_CFTR(cftr_calc_HCO3_Cl(input_dict, 20000, 120000, 200000),'GCFTR')
@@ -29,6 +29,11 @@ def graph_generation(graph_type, input_dict, variant_impact = None):
 		filename = graph_antiporters(antiporters_calc(input_dict, 20000, 120000, 200000), 'antiporter_onoff')
 	elif graph_type == 'Variant Impact':
 		filename = graph_variant_impact(calc_variant_impact(input_dict, 20000, 120000, 200000, variant_impact), 'variant_impact')
+	elif graph_type == 'Smoking':
+		filename = graph_smoking_impact(calc_smoking_impact(input_dict, 20000, 120000, 200000, smoking_status), 'smoking_impact')
+	# Add smoking and variant functionality in combination
+	elif graph_type == 'Smoking & Variants':
+		filename = graph_var_smoke_impact(calc_var_smoke_impact(input_dict, 20000, 120000, 200000, variant_impact, smoking_status), 'smoking_and_variant_impact')
 	return filename
 
 def cftr_calc_HCO3_Cl(input_dict, t_on, t_off, t_end):
@@ -83,8 +88,8 @@ def graph_CFTR(model_results, filename):
 	plt.subplot(2, 1, 1)
 	plt.plot(t,bi, 'r-', label = 'HCO3-(intra)')
 	plt.plot(t,bl, 'g-', label = 'HCO3-(luminal)')
-	plt.axvline(x=t_on, color = 'pink', label = 't_on')
-	plt.axvline(x=t_off, color = 'purple', label = 't_off')
+	plt.axvline(x=t_on, color = 'pink', label = 'CFTR open')
+	plt.axvline(x=t_off, color = 'purple', label = 'CFTR closed')
 	plt.axvspan(t_on, t_off, alpha=0.1, color='red')
 	plt.legend(loc = 'right')
 	plt.title('Duct Modeling Dif. Eq. \n GCFTR OPEN in RED')
@@ -94,8 +99,8 @@ def graph_CFTR(model_results, filename):
 	plt.subplot(2, 1, 2)
 	plt.plot(t,ci, label = 'Cl(intra)')
 	plt.plot(t,(160- bl), label = 'Cl(luminal)')
-	plt.axvline(x=t_on, color = 'pink', label = 't_on')
-	plt.axvline(x=t_off, color = 'purple', label = 't_off')
+	plt.axvline(x=t_on, color = 'pink', label = 'CFTR open')
+	plt.axvline(x=t_off, color = 'purple', label = 'CFTR closed')
 	plt.axvspan(t_on, t_off, alpha=0.1, color='red')
 	plt.xlabel('time (min)')
 	plt.ylabel('Chloride Conc. (mM)')
@@ -324,14 +329,16 @@ def graph_variant_impact(model_results, filename):
 	ni_var = model_results[1][0][4]
 	variant_input_dict = model_results[1][4]
 
+	plt.style.use('seaborn')
+
 	# Upper Plot
 	plt.subplot(2, 1, 1)
 	plt.plot(t,bi, 'r-', label = 'HCO3-(intra)')
-	plt.plot(t_var,bi_var, 'r-', label = 'HCO3-(intra) VAR', alpha = 0.25)
-	plt.plot(t_var,bl_var, 'g-', label = 'HCO3-(luminal) VAR', alpha = 0.25)
+	plt.plot(t_var,bi_var, 'r-', label = 'HCO3-(intra) VAR', linestyle= '--', alpha = 0.25)
+	plt.plot(t_var,bl_var, 'g-', label = 'HCO3-(luminal) VAR', linestyle= '--', alpha = 0.25)
 	plt.plot(t,bl, 'g-', label = 'HCO3-(luminal)')
-	plt.axvline(x=t_on, color = 'pink', label = 't_on')
-	plt.axvline(x=t_off, color = 'purple', label = 't_off')
+	plt.axvline(x=t_on, color = 'pink', label = 'CFTR open')
+	plt.axvline(x=t_off, color = 'purple', label = 'CFTR closed')
 	plt.axvspan(t_on, t_off, alpha=0.1, color='red')
 	plt.legend(loc = 'right')
 	plt.title('Duct Modeling Dif. Eq. \n GCFTR OPEN in RED \n Variants WT%:'+str(variant_input_dict))
@@ -340,11 +347,11 @@ def graph_variant_impact(model_results, filename):
 	# Lower Plot
 	plt.subplot(2, 1, 2)
 	plt.plot(t,ci, 'y-', label = 'Cl(intra)')
-	plt.plot(t_var,ci_var, 'y-', label = 'Cl(intra) VAR', alpha = 0.25)
-	plt.plot(t_var,(160- bl_var), 'b-', label = 'Cl(luminal) VAR', alpha = 0.25)
+	plt.plot(t_var,ci_var, 'y-', label = 'Cl(intra) VAR', linestyle= '--', alpha = 0.25)
+	plt.plot(t_var,(160- bl_var), 'b-', label = 'Cl(luminal) VAR', linestyle= '--', alpha = 0.25)
 	plt.plot(t,(160- bl), 'b-', label = 'Cl(luminal)')
-	plt.axvline(x=t_on, color = 'pink', label = 't_on')
-	plt.axvline(x=t_off, color = 'purple', label = 't_off')
+	plt.axvline(x=t_on, color = 'pink', label = 'CFTR open')
+	plt.axvline(x=t_off, color = 'purple', label = 'CFTR closed')
 	plt.axvspan(t_on, t_off, alpha=0.1, color='red')
 	plt.xlabel('time (min)')
 	plt.ylabel('Chloride Conc. (mM)')
@@ -356,4 +363,221 @@ def graph_variant_impact(model_results, filename):
 	plt.show()
 	return filename
 
+def calc_smoking_impact(input_dict, t_on, t_off, t_end, smoking_status):
+	# Wrapper function to pass dictionary parameters through solve_ivp
+	def wrapper_fxn(t, y):
+		return duct_model_system(t, y, cond)
+	# Copy Input Dictionary so Initial Dictionary is Unaltered
+	cond = copy.deepcopy(input_dict)
 
+	model_results = []
+
+	model_results.append(cftr_calc_HCO3_Cl(input_dict, t_on, t_off, t_end))
+
+	# Adjust for change in chloride transport from Cutting Paper
+	if smoking_status == 'light':
+		# from paper Nicotine (hurts light, protective heavy)
+		# "Inhibition of Pancreatic Secretion in Man by Cigarrette Smoking" - T. Bynum et al.
+		cond['smoke_adj'] = 0.4
+
+	# Period Before gcftr opens
+	cond['gcftr'] = init_cond['gcftrbase']
+	y0_0 = [cond['bi'], cond['bl'], cond['ci'], cond['ni'], cond['gcftr']]
+	state0 = solve_ivp(wrapper_fxn, [0,t_on], y0_0)
+	print(cond['smoke_adj'])
+
+	# Period where gcftr is open
+	# Turn gcftr 'on' and re-initialize boundary conditions
+	cond['gcftr'] = cond['gcftron']
+	cond['bi'] = state0['y'][0][-1]
+	cond['bl'] = state0['y'][1][-1]
+	cond['ci'] = state0['y'][2][-1]
+	cond['ni'] = state0['y'][3][-1]
+	y0_1 = [cond['bi'], cond['bl'], cond['ci'], cond['ni'], cond['gcftr']]
+	state1 = solve_ivp(wrapper_fxn, [t_on,t_off], y0_1)
+	# Period where gcftr closes to end
+	# Turn gcftr 'on' and re-initialize boundary conditions
+	cond['gcftr'] = cond['gcftrbase']
+	cond['bi'] = state1['y'][0][-1]
+	cond['bl'] = state1['y'][1][-1]
+	cond['ci'] = state1['y'][2][-1]
+	cond['ni'] = state1['y'][3][-1]
+	y0_2 = [cond['bi'], cond['bl'], cond['ci'], cond['ni'], cond['gcftr']]
+	state2 = solve_ivp(wrapper_fxn, [t_off,t_end], y0_2)
+
+	t_graph = np.concatenate([state0['t'], state1['t'], state2['t']])
+	bi_graph = np.concatenate([state0['y'][0], state1['y'][0], state2['y'][0]])
+	bl_graph = np.concatenate([state0['y'][1], state1['y'][1], state2['y'][1]])
+	ci_graph = np.concatenate([state0['y'][2], state1['y'][2], state2['y'][2]])
+	ni_graph = np.concatenate([state0['y'][3], state1['y'][3], state2['y'][3]])
+
+	model_results.append([[t_graph, bi_graph, bl_graph, ci_graph, ni_graph], t_on, t_off, t_end, smoking_status])
+	print(str(len(model_results)) + 'is the length of the array')
+	return model_results
+
+def graph_smoking_impact(model_results, filename):
+	# Unpack Vars
+	t = model_results[0][0][0]
+	bi = model_results[0][0][1]
+	bl = model_results[0][0][2]
+	ci = model_results[0][0][3]
+	ni = model_results[0][0][4]
+	t_on = model_results[0][1]
+	t_off = model_results[0][2]
+	t_end = model_results[0][3]
+
+	t_var = model_results[1][0][0]
+	bi_var = model_results[1][0][1]
+	bl_var = model_results[1][0][2]
+	ci_var = model_results[1][0][3]
+	ni_var = model_results[1][0][4]
+	smoking_status = model_results[1][4]
+
+	plt.style.use('seaborn')
+
+	# Upper Plot
+	plt.subplot(2, 1, 1)
+	plt.plot(t,bi, 'r-', label = 'HCO3-(intra)')
+	plt.plot(t_var,bi_var, 'r-', label = 'HCO3-(intra) VAR', linestyle= '--', alpha = 0.25)
+	plt.plot(t_var,bl_var, 'g-', label = 'HCO3-(luminal) VAR', linestyle= '--', alpha = 0.25)
+	plt.plot(t,bl, 'g-', label = 'HCO3-(luminal)')
+	plt.axvline(x=t_on, color = 'pink', label = 'CFTR open')
+	plt.axvline(x=t_off, color = 'purple', label = 'CFTR closed')
+	plt.axvspan(t_on, t_off, alpha=0.1, color='red')
+	plt.legend(loc = 'right')
+	plt.title('Duct Modeling Dif. Eq. \n GCFTR OPEN in RED \n Smoking Level:'+str(smoking_status))
+	plt.ylabel('Bicarb Conc. (mM)')
+
+	# Lower Plot
+	plt.subplot(2, 1, 2)
+	plt.plot(t,ci, 'y-', label = 'Cl(intra)')
+	plt.plot(t_var,ci_var, 'y-', label = 'Cl(intra) VAR', linestyle= '--', alpha = 0.25)
+	plt.plot(t_var,(160- bl_var), 'b-', label = 'Cl(luminal) VAR', linestyle= '--', alpha = 0.25)
+	plt.plot(t,(160- bl), 'b-', label = 'Cl(luminal)')
+	plt.axvline(x=t_on, color = 'pink', label = 'CFTR open')
+	plt.axvline(x=t_off, color = 'purple', label = 'CFTR closed')
+	plt.axvspan(t_on, t_off, alpha=0.1, color='red')
+	plt.xlabel('time (min)')
+	plt.ylabel('Chloride Conc. (mM)')
+	plt.legend(loc = 'right')
+
+
+
+	plt.savefig(filename) # store local copy for later use
+	plt.show()
+	return filename
+
+def calc_var_smoke_impact(input_dict, t_on, t_off, t_end, variant_input_dict, smoking_status):
+	# Wrapper function to pass dictionary parameters through solve_ivp
+	def wrapper_fxn(t, y):
+		return duct_model_system(t, y, cond)
+	# Copy Input Dictionary so Initial Dictionary is Unaltered
+	cond = copy.deepcopy(input_dict)
+
+	model_results = []
+
+	model_results.append(cftr_calc_HCO3_Cl(input_dict, t_on, t_off, t_end))
+
+	# Adjust for change in chloride transport from Cutting Paper
+	if smoking_status == 'light':
+		# from paper Nicotine (hurts light, protective heavy)
+		# "Inhibition of Pancreatic Secretion in Man by Cigarrette Smoking" - T. Bynum et al.
+		cond['smoke_adj'] = 0.4
+
+	# Accomodate patient variants
+	variant_wt_func_list = []
+	for key in variant_input_dict:
+		variant_wt_func_list.append(variant_input_dict[key])
+	total_impact = np.mean(variant_wt_func_list)
+
+	# Adjust for change in chloride transport from Cutting Paper
+	cond['cond_adj'] = total_impact / 100
+
+	# Period Before gcftr opens
+	cond['gcftr'] = init_cond['gcftrbase']
+	y0_0 = [cond['bi'], cond['bl'], cond['ci'], cond['ni'], cond['gcftr']]
+	state0 = solve_ivp(wrapper_fxn, [0,t_on], y0_0)
+	print(cond['smoke_adj'])
+	print(cond['cond_adj'])
+
+	# Period where gcftr is open
+	# Turn gcftr 'on' and re-initialize boundary conditions
+	cond['gcftr'] = cond['gcftron']
+	cond['bi'] = state0['y'][0][-1]
+	cond['bl'] = state0['y'][1][-1]
+	cond['ci'] = state0['y'][2][-1]
+	cond['ni'] = state0['y'][3][-1]
+	y0_1 = [cond['bi'], cond['bl'], cond['ci'], cond['ni'], cond['gcftr']]
+	state1 = solve_ivp(wrapper_fxn, [t_on,t_off], y0_1)
+	# Period where gcftr closes to end
+	# Turn gcftr 'on' and re-initialize boundary conditions
+	cond['gcftr'] = cond['gcftrbase']
+	cond['bi'] = state1['y'][0][-1]
+	cond['bl'] = state1['y'][1][-1]
+	cond['ci'] = state1['y'][2][-1]
+	cond['ni'] = state1['y'][3][-1]
+	y0_2 = [cond['bi'], cond['bl'], cond['ci'], cond['ni'], cond['gcftr']]
+	state2 = solve_ivp(wrapper_fxn, [t_off,t_end], y0_2)
+
+	t_graph = np.concatenate([state0['t'], state1['t'], state2['t']])
+	bi_graph = np.concatenate([state0['y'][0], state1['y'][0], state2['y'][0]])
+	bl_graph = np.concatenate([state0['y'][1], state1['y'][1], state2['y'][1]])
+	ci_graph = np.concatenate([state0['y'][2], state1['y'][2], state2['y'][2]])
+	ni_graph = np.concatenate([state0['y'][3], state1['y'][3], state2['y'][3]])
+
+	model_results.append([[t_graph, bi_graph, bl_graph, ci_graph, ni_graph], t_on, t_off, t_end, variant_input_dict, smoking_status])
+	print(str(len(model_results)) + 'is the length of the array')
+	return model_results
+
+def graph_var_smoke_impact(model_results, filename):
+	# Unpack Vars
+	t = model_results[0][0][0]
+	bi = model_results[0][0][1]
+	bl = model_results[0][0][2]
+	ci = model_results[0][0][3]
+	ni = model_results[0][0][4]
+	t_on = model_results[0][1]
+	t_off = model_results[0][2]
+	t_end = model_results[0][3]
+
+	t_var_smoke = model_results[1][0][0]
+	bi_var_smoke = model_results[1][0][1]
+	bl_var_smoke = model_results[1][0][2]
+	ci_var_smoke = model_results[1][0][3]
+	ni_var_smoke = model_results[1][0][4]
+	variant_input_dict = model_results[1][4]
+	smoking_status = model_results[1][5]
+
+	plt.style.use('seaborn')
+
+	# Upper Plot
+	plt.subplot(2, 1, 1)
+	plt.plot(t,bi, 'r-', label = 'HCO3-(intra)')
+	plt.plot(t_var_smoke,bi_var_smoke, 'r-', label = 'HCO3-(intra) VAR', linestyle= '--', alpha = 0.25)
+	plt.plot(t_var_smoke,bl_var_smoke, 'g-', label = 'HCO3-(luminal) VAR', linestyle= '--', alpha = 0.25)
+	plt.plot(t,bl, 'g-', label = 'HCO3-(luminal)')
+	plt.axvline(x=t_on, color = 'pink', label = 'CFTR open')
+	plt.axvline(x=t_off, color = 'purple', label = 'CFTR closed')
+	plt.axvspan(t_on, t_off, alpha=0.1, color='red')
+	plt.legend(loc = 'right')
+	plt.title('Duct Modeling Dif. Eq. \n CFTR OPEN in RED \n Smoking Level:'+str(smoking_status) +'\n Variants:'+str(variant_input_dict))
+	plt.ylabel('Bicarb Conc. (mM)')
+
+	# Lower Plot
+	plt.subplot(2, 1, 2)
+	plt.plot(t,ci, 'y-', label = 'Cl(intra)')
+	plt.plot(t_var_smoke,ci_var_smoke, 'y-', label = 'Cl(intra) VAR', linestyle= '--', alpha = 0.25)
+	plt.plot(t_var_smoke,(160- bl_var_smoke), 'b-', label = 'Cl(luminal) VAR', linestyle= '--', alpha = 0.25)
+	plt.plot(t,(160- bl), 'b-', label = 'Cl(luminal)')
+	plt.axvline(x=t_on, color = 'pink', label = 'CFTR open')
+	plt.axvline(x=t_off, color = 'purple', label = 'CFTR closed')
+	plt.axvspan(t_on, t_off, alpha=0.1, color='red')
+	plt.xlabel('time (min)')
+	plt.ylabel('Chloride Conc. (mM)')
+	plt.legend(loc = 'right')
+
+
+
+	plt.savefig(filename) # store local copy for later use
+	plt.show()
+	return filename
