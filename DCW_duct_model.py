@@ -25,8 +25,8 @@ init_cond = {'g_bi': 0.2, 'g_cl': 1, 'zeta': 0.05,
 			  'gcftrbase': 0.00007, 'ek': -0.085, 'gk': 1, 
 			  'cap': 1, 'gnak': 3.125, 'np0': 25, 'epump': -0.2,
 			  'ionstr': 160, 'gnaleak': 0.4, 'jac': 0.025, 
-			  'rat': 0.25, 'cond_adj': 1, 'vr': 0.1, 'apb_status': True,
-			  'ap_status': True, 'gcftr': 0.00007, 'smoke_adj': 1}
+			  'rat': 0.25, 'cond_adj': 1, 'vr': 0.1, 'apb_status': False,
+			  'ap_status': False, 'gcftr': 0.00007, 'smoke_adj': 1}
 
 # Antiporter Fxn (ap(ao,ai,bo,bi,ka,kb) in original)
 def antiporter(ao,ai,bo,bi,ka,kb):
@@ -117,7 +117,7 @@ def duct_model_system(t, y, cond):
 	else:
 		japl = 0
 	if apb_status:
-		japbl = antiporter(bb,bi,cb,ci,kbi,kcl)*gapbl*apb_status
+		japbl = antiporter(bb,bi,cb,ci,kbi,kcl)*gapbl
 	else:
 		japbl = 0
 
@@ -136,4 +136,7 @@ def duct_model_system(t, y, cond):
 	dni = zeta*(jnbc-jnak-jnaleak)
 	dgcftr = 0
 	return [dbi, dbl, dci, dni, dgcftr]
+
+
+
 

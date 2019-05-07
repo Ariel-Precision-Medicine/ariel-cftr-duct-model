@@ -195,6 +195,8 @@ def antiporters_calc(input_dict, t_on, t_off, t_end):
 	for option in antiporter_options:
 		cond['ap_status'] = option[0]
 		cond['apb_status'] = option[1]
+		print(cond['ap_status'])
+		print(cond['apb_status'])
 		# Period Before gcftr opens
 		cond['gcftr'] = init_cond['gcftrbase']
 		y0_0 = [cond['bi'], cond['bl'], cond['ci'], cond['ni'], cond['gcftr']]
