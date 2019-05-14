@@ -1,5 +1,12 @@
 # OOP_DUCT_MODEL.py
 
+# For Ariel Precision Medicine
+# CFTR Expert System
+### Confidential ###
+
+from bokeh.plotting import figure, output_file, show
+
+
 class Duct_Cell():
 	# Duct cell in the pancreas
 	def __init__(self):
@@ -41,10 +48,29 @@ class Duct_Cell():
 		self.input_dict['alcohol_adj'] = adj
 
 
-cell1 = Duct_Cell()
-cell1.report_influences()
-print('\n')
-cell1.add_variant_influence(0.85)
-cell1.add_alcohol_influence(0.70)
-cell1.add_smoking_influence(0.82)
-cell1.report_influences()
+
+wt_cell = Duct_Cell()
+wt_cell.report_influences()
+
+##############################
+# https://demo.bokeh.org/sliders
+# ^ Server-style app options, can allow us to change parameters
+
+
+# from bokeh.plotting import figure, output_file, show
+
+# # prepare some data
+# x = [1, 2, 3, 4, 5]
+# y = [6, 7, 2, 4, 5]
+
+# # output to static HTML file
+# output_file("lines.html")
+
+# # create a new plot with a title and axis labels
+# p = figure(title="simple line example", x_axis_label='x', y_axis_label='y')
+
+# # add a line renderer with legend and line thickness
+# p.line(x, y, legend="Temp.", line_width=2)
+
+# # show the results
+# show(p)
