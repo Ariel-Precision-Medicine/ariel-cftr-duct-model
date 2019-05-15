@@ -25,8 +25,9 @@ init_cond = {'g_bi': 0.2, 'g_cl': 1, 'zeta': 0.05,
 			  'gcftrbase': 0.00007, 'ek': -0.085, 'gk': 1, 
 			  'cap': 1, 'gnak': 3.125, 'np0': 25, 'epump': -0.2,
 			  'ionstr': 160, 'gnaleak': 0.4, 'jac': 0.025, 
-			  'rat': 0.25, 'cond_adj': 1, 'vr': 0.1, 'apb_status': False,
-			  'ap_status': False, 'gcftr': 0.00007, 'smoke_adj': 1}
+			  'rat': 0.25, 'variant_adj': None, 'vr': 0.1, 'apb_status': False,
+			  'ap_status': False, 'gcftr': 0.00007, 'smoke_adj': None,
+			  'alcohol_adj': None}
 
 # Antiporter Fxn (ap(ao,ai,bo,bi,ka,kb) in original)
 def antiporter(ao,ai,bo,bi,ka,kb):
@@ -89,8 +90,19 @@ def duct_model_system(t, y, cond):
 	bi0 = cond['bi0']
 
 	# Unpack Added Variables
-	cond_adj = cond['cond_adj']
+	variant_adj = cond['variant_adj']
 	smoke_adj = cond['smoke_adj']
+	alcohol_adj = cond['alcohol_adj']
+
+	if variant_adj == None:
+		variant_adj = 1
+
+	if smoke_adj == None:
+		smoke_adj = 1
+
+	if alcohol_adj == None:
+		alcohol_adj = 1
+
 
 	# Nernst Potentials
 	eb = nernst_potential(bi, bl)
@@ -109,7 +121,7 @@ def duct_model_system(t, y, cond):
 	# Flux Calculations
 	jnbc = knbc*(v-enbc)
 	jbcftr = kbcf*(v-eb) * smoke_adj
-	jccftr = kccf*(v-ec) * cond_adj
+	jccftr = kccf*(v-ec) * variant_adj
 
 	# Antiporter Status (Open = True, Close = False)
 	if ap_status:

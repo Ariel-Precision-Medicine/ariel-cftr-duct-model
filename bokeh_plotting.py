@@ -1,4 +1,4 @@
-# duct_model_bokeh_plotting.py
+# bokeh_plotting.py
 
 from math import log
 from scipy.integrate import odeint, solve_ivp
@@ -12,7 +12,7 @@ from bokeh.plotting import figure, output_file, show
 from bokeh.layouts import column, row
 
 
-def cftr_calc_HCO3_Cl(input_dict, t_on, t_off, t_end):
+def run_model_CFTR(input_dict, t_on, t_off, t_end):
 	times = {'t_on': t_on, 't_off': t_off, 't_end': t_end}
 
 	# Wrapper function to pass dictionary parameters through solve_ivp
@@ -52,7 +52,7 @@ def cftr_calc_HCO3_Cl(input_dict, t_on, t_off, t_end):
 									state2['y'][graphing_strings.index(variable)]])
 	return [graphing_dict, times, graphing_strings]
 
-def graph_CFTR_open_close(model_results, filename, title):
+def graph_CFTR(model_results, filename, title):
 	# Unpack variables
 	graphing_dict, times, graphing_strings = model_results[0], model_results[1], model_results[2]
 	time_adj = 20000
@@ -79,11 +79,11 @@ def graph_CFTR_open_close(model_results, filename, title):
 
 	plot_bicarb.line(t, bl, legend = 'Luminal Bicarbonate',
 					 line_width = 3,
-					 line_color = 'red')
+					 line_color = '#34344A')
 
 	plot_bicarb.line(t, bi, legend = 'Intracellular Bicarbonate',
 					 line_width = 3,
-					 line_color = 'orange')
+					 line_color = '#7FE0CB')
 
 	# Create new plot with title and axis
 	plot_chloride = figure(title = title,
@@ -96,43 +96,20 @@ def graph_CFTR_open_close(model_results, filename, title):
 
 	plot_chloride.line(t, cl, legend = 'Luminal Chloride',
 					 line_width = 3,
-					 line_color = 'navy')
+					 line_color = '#34344A')
 
 	plot_chloride.line(t, ci, legend = 'Intracellular Chloride',
 					 line_width = 3,
-					 line_color = 'blue')
+					 line_color = '#7FE0CB')
 
-	
+	plot_chloride.background_fill_color = '#F4F1E1'
+	plot_chloride.background_fill_alpha = 0.5
 
 	# plot.line(t, cl, legend = 'L')
 	# plot.line(t, ci)
 
-	show(column(plot_bicarb, plot_chloride))
+	#show(column(plot_bicarb, plot_chloride))
 
-	# # Upper Plot
-	# plt.subplot(2, 1, 1)
-	# plt.plot(t,bi, 'r-', label = 'HCO3-(intra)')
-	# plt.plot(t,bl, 'g-', label = 'HCO3-(luminal)')
-	# plt.axvline(x=t_on, color = 'pink', label = 'CFTR open')
-	# plt.axvline(x=t_off, color = 'purple', label = 'CFTR closed')
-	# plt.axvspan(t_on, t_off, alpha=0.1, color='red')
-	# plt.legend(loc = 'right')
-	# plt.title('Duct Modeling Dif. Eq. \n GCFTR OPEN in RED')
-	# plt.ylabel('Bicarb Conc. (mM)')
+	return plot_bicarb, plot_chloride
 
-	# # Lower Plot
-	# plt.subplot(2, 1, 2)
-	# plt.plot(t,ci, label = 'Cl(intra)')
-	# plt.plot(t,(160-bl), label = 'Cl(luminal)')
-	# plt.axvline(x=t_on, color = 'pink', label = 'CFTR open')
-	# plt.axvline(x=t_off, color = 'purple', label = 'CFTR closed')
-	# plt.axvspan(t_on, t_off, alpha=0.1, color='red')
-	# plt.xlabel('c')
-	# plt.ylabel('Chloride Conc. (mM)')
-	# plt.legend(loc = 'right')
-
-	# plt.savefig(filename) # store local copy for later use
-	# plt.show()
-	return filename
-
-graph_CFTR_open_close(cftr_calc_HCO3_Cl(init_cond, 20000, 120000, 200000),'CFTR_plot', 'Duct Modeling Differential Equation Analysis')
+graph_CFTR(run_model_CFTR(init_cond, 20000, 120000, 200000),'CFTR_plot', 'Duct Modeling Differential Equation Analysis')
