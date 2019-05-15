@@ -70,7 +70,7 @@ def graph_CFTR(model_results, filename, title):
 	output_file(filename + '.html')
 	# Create new plot with title and axis
 	plot_bicarb = figure(title = title,
-				  x_axis_label = 'time (min',
+				  x_axis_label = 'time (min)',
 				  y_axis_label = 'Bicarb Conc. (mM)')
 
 	plot_bicarb.vbar(x=np.average([t_on, t_off]), bottom=0, top=np.max(bl), 
@@ -87,10 +87,10 @@ def graph_CFTR(model_results, filename, title):
 
 	# Create new plot with title and axis
 	plot_chloride = figure(title = title,
-				  x_axis_label = 'time (min',
+				  x_axis_label = 'time (min)',
 				  y_axis_label = 'Chloride Conc. (mM)')
 
-	plot_chloride.vbar(x=np.average([t_on, t_off]), bottom=0, top=np.max(bl), 
+	plot_chloride.vbar(x=np.average([t_on, t_off]), bottom=0, top=np.max(cl), 
          color='gray', width=t_off-t_on, 
          legend='CFTR Channel Open', fill_alpha = 0.1)
 
