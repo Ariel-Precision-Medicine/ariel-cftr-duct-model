@@ -70,26 +70,19 @@ def graph_CFTR(model_results, filename, title):
 	# Create output file
 	output_file(filename + '.html')
 	# Create new plot with title and axis
-	plot_bicarb = figure(title = title,
-				  x_axis_label = 'time (min)',
-				  y_axis_label = 'Bicarb Conc. (mM)',
-				  y_range = (0, 150))
+	plot_bicarb = figure(title = title, x_axis_label = 'time (min)',
+						 y_axis_label = 'Bicarb Conc. (mM)', y_range = (0, 150))
 
-	channel_open = plot_bicarb.vbar(x=np.average([t_on, t_off]), bottom=0, top=np.max(bl), 
-							         color='gray', width=t_off-t_on, fill_alpha = 0.1)
+	channel_open_b = plot_bicarb.vbar(x=np.average([t_on, t_off]), bottom=0,
+									  top=np.max(bl), color='gray', 
+									  width=t_off-t_on, fill_alpha = 0.1)
 
-	lum_bicarb = plot_bicarb.line(t, bl,
-										 line_width = 3,
-										 line_color = '#34344A')
+	lum_bicarb = plot_bicarb.line(t, bl, line_width = 3, line_color = '#34344A')
 
-	intra_bicarb = plot_bicarb.line(t, bi,
-											 line_width = 3,
-											 line_color = '#7FE0CB')
+	intra_bicarb = plot_bicarb.line(t, bi, line_width = 3, line_color = '#7FE0CB')
 
-	peak_bicarb = plot_bicarb.circle(t_off, np.max(bl),
-														   size=20, 
-														   color='red', 
-														   alpha=0.5)
+	peak_bicarb = plot_bicarb.circle(t_off, np.max(bl),size=15, color='red', 
+									 alpha=0.5)
 
 	secretion_text = 'Peak Secretion '+str(np.max(bl).round(0))+' mM'
 
@@ -97,11 +90,18 @@ def graph_CFTR(model_results, filename, title):
 			    	("Luminal Bicarbonate"   , [lum_bicarb]),
 				    ("Intracellular Bicarbonate" , [intra_bicarb]),
 				    (secretion_text , [peak_bicarb]),
-				    ("CFTR Channel Open", [channel_open])
+				    ("CFTR Channel Open", [channel_open_b])
 							], location="center")
 
+	# Styling for Plot
 	plot_bicarb.add_layout(legend, 'right')
-
+	plot_bicarb.legend.label_text_font = 'gilroy'
+	plot_bicarb.title.text_font = 'gilroy'
+	plot_bicarb.title.text_font_style = 'bold'
+	plot_bicarb.yaxis.axis_label_text_font = 'gilroy'
+	plot_bicarb.yaxis.axis_label_text_font_style = 'normal'
+	plot_bicarb.xaxis.axis_label_text_font = 'gilroy'
+	plot_bicarb.xaxis.axis_label_text_font_style = 'normal'
 
 	# Create new plot with title and axis
 	plot_chloride = figure(title = title,
@@ -109,20 +109,34 @@ def graph_CFTR(model_results, filename, title):
 				  y_axis_label = 'Chloride Conc. (mM)',
 				  y_range = (0, 150))
 
-	plot_chloride.vbar(x=np.average([t_on, t_off]), bottom=0, top=np.max(cl), 
+	channel_open_c = plot_chloride.vbar(x=np.average([t_on, t_off]), bottom=0, top=np.max(cl), 
          color='gray', width=t_off-t_on, 
-         legend='CFTR Channel Open', fill_alpha = 0.1)
+          fill_alpha = 0.1)
 
-	plot_chloride.line(t, cl, legend = 'Luminal Chloride',
-					 line_width = 3,
-					 line_color = '#34344A')
+	lum_chloride = plot_chloride.line(t, cl, line_width = 3, line_color = '#34344A')
 
-	plot_chloride.line(t, ci, legend = 'Intracellular Chloride',
-					 line_width = 3,
-					 line_color = '#7FE0CB')
+	intra_chloride = plot_chloride.line(t, ci, line_width = 3, line_color = '#7FE0CB')
 
 	plot_chloride.background_fill_color = '#F4F1E1'
 	plot_chloride.background_fill_alpha = 0.5
+
+	legend = Legend(items=[
+			    	("Luminal Chloride"   , [lum_chloride]),
+				    ("Intracellular Chloride" , [intra_chloride]),
+				    ("CFTR Channel Open", [channel_open_c])
+							], location="center")
+
+	# Styling for Plot
+	plot_chloride.add_layout(legend, 'right')
+	plot_chloride.legend.label_text_font = 'gilroy'
+	plot_chloride.legend.background_fill_color = '#F4F1E1'
+	plot_chloride.legend.background_fill_alpha = 0.5
+	plot_chloride.title.text_font = 'gilroy'
+	plot_chloride.title.text_font_style = 'bold'
+	plot_chloride.yaxis.axis_label_text_font = 'gilroy'
+	plot_chloride.yaxis.axis_label_text_font_style = 'normal'
+	plot_chloride.xaxis.axis_label_text_font = 'gilroy'
+	plot_chloride.xaxis.axis_label_text_font_style = 'normal'
 
 	return plot_bicarb, plot_chloride
 

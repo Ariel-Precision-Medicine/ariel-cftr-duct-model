@@ -62,13 +62,13 @@ class Duct_Cell():
 			variant_input_dict = copy.deepcopy(self.input_dict)
 			variant_input_dict['smoke_adj'] = None
 			variant_input_dict['alcohol_adj'] = None
-			self.graphs['Variants CFTR'] = graph_CFTR(run_model_CFTR(variant_input_dict, 20000, 120000, 200000), 'Variants_CFTR_plot', 'Duct Modeling Differential Equation Analysis (WT+Variants)')
+			self.graphs['Variants CFTR'] = graph_CFTR(run_model_CFTR(variant_input_dict, 20000, 120000, 200000), 'Variants_CFTR_plot', 'Duct Modeling Differential Equation Analysis (WT + Variants)')
 			rows.append(self.graphs['Variants CFTR'])
 
 		if self.input_dict['variant_adj'] != None and self.input_dict['smoke_adj'] != None:
 			variant_and_smoking_input_dict = copy.deepcopy(self.input_dict)
 			variant_and_smoking_input_dict['alcohol_adj'] = None
-			self.graphs['Variants & Smoking CFTR'] = graph_CFTR(run_model_CFTR(variant_and_smoking_input_dict, 20000, 120000, 200000), 'Variants_And_Smoking_CFTR_plot', 'Duct Modeling Differential Equation Analysis (WT+Variants+Smoking)')
+			self.graphs['Variants & Smoking CFTR'] = graph_CFTR(run_model_CFTR(variant_and_smoking_input_dict, 20000, 120000, 200000), 'Variants_And_Smoking_CFTR_plot', 'Duct Modeling Differential Equation Analysis (WT + Variants + Smoking)')
 			rows.append(self.graphs['Variants & Smoking CFTR'])
 
 		# if self.input_dict['variant_adj'] != None and self.input_dict['smoke_adj'] != None:
