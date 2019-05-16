@@ -10,6 +10,7 @@ from DCW_duct_model import duct_model_system, init_cond
 
 from bokeh.plotting import figure, output_file, show
 from bokeh.layouts import column, row
+from bokeh.models import Legend
 
 
 def run_model_CFTR(input_dict, t_on, t_off, t_end):
@@ -71,24 +72,42 @@ def graph_CFTR(model_results, filename, title):
 	# Create new plot with title and axis
 	plot_bicarb = figure(title = title,
 				  x_axis_label = 'time (min)',
-				  y_axis_label = 'Bicarb Conc. (mM)')
+				  y_axis_label = 'Bicarb Conc. (mM)',
+				  y_range = (0, 150))
 
-	plot_bicarb.vbar(x=np.average([t_on, t_off]), bottom=0, top=np.max(bl), 
-         color='gray', width=t_off-t_on, 
-         legend='CFTR Channel Open', fill_alpha = 0.1)
+	channel_open = plot_bicarb.vbar(x=np.average([t_on, t_off]), bottom=0, top=np.max(bl), 
+							         color='gray', width=t_off-t_on, fill_alpha = 0.1)
 
-	plot_bicarb.line(t, bl, legend = 'Luminal Bicarbonate',
-					 line_width = 3,
-					 line_color = '#34344A')
+	lum_bicarb = plot_bicarb.line(t, bl,
+										 line_width = 3,
+										 line_color = '#34344A')
 
-	plot_bicarb.line(t, bi, legend = 'Intracellular Bicarbonate',
-					 line_width = 3,
-					 line_color = '#7FE0CB')
+	intra_bicarb = plot_bicarb.line(t, bi,
+											 line_width = 3,
+											 line_color = '#7FE0CB')
+
+	peak_bicarb = plot_bicarb.circle(t_off, np.max(bl),
+														   size=20, 
+														   color='red', 
+														   alpha=0.5)
+
+	secretion_text = 'Peak Secretion '+str(np.max(bl).round(0))+' mM'
+
+	legend = Legend(items=[
+			    	("Luminal Bicarbonate"   , [lum_bicarb]),
+				    ("Intracellular Bicarbonate" , [intra_bicarb]),
+				    (secretion_text , [peak_bicarb]),
+				    ("CFTR Channel Open", [channel_open])
+							], location="center")
+
+	plot_bicarb.add_layout(legend, 'right')
+
 
 	# Create new plot with title and axis
 	plot_chloride = figure(title = title,
 				  x_axis_label = 'time (min)',
-				  y_axis_label = 'Chloride Conc. (mM)')
+				  y_axis_label = 'Chloride Conc. (mM)',
+				  y_range = (0, 150))
 
 	plot_chloride.vbar(x=np.average([t_on, t_off]), bottom=0, top=np.max(cl), 
          color='gray', width=t_off-t_on, 
@@ -104,11 +123,6 @@ def graph_CFTR(model_results, filename, title):
 
 	plot_chloride.background_fill_color = '#F4F1E1'
 	plot_chloride.background_fill_alpha = 0.5
-
-	# plot.line(t, cl, legend = 'L')
-	# plot.line(t, ci)
-
-	#show(column(plot_bicarb, plot_chloride))
 
 	return plot_bicarb, plot_chloride
 

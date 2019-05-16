@@ -78,7 +78,7 @@ class Duct_Cell():
 		# 	rows.append(self.graphs['Variants CFTR'])
 
 		# make a grid
-		grid = gridplot(rows, plot_width = 550, plot_height = 350)
+		grid = gridplot(rows, plot_width = 550, plot_height = 350, sizing_mode = 'scale_width')
 		
 		# show the results
 		show(grid)
