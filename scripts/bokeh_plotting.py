@@ -68,7 +68,7 @@ def graph_CFTR(model_results, filename, title):
 	t_end = times['t_end'] / time_adj
 
 	# Create output file
-	output_file(filename + '.html')
+	output_file('outputs/' + filename + '.html')
 	# Create new plot with title and axis
 	plot_bicarb = figure(title = title, x_axis_label = 'time (min)',
 						 y_axis_label = 'Bicarb Conc. (mM)', y_range = (0, 150))

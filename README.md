@@ -9,6 +9,17 @@ Model has been translated from XPPAUT to Python for flexibility and future use.
 
 Variant functionality has not been rigorously verified, but source is Cutting Paper for residual CFTR fxn found here: https://www.ncbi.nlm.nih.gov/pubmed/29805046
 
+Currently, two display options are available:
+(1) a user-interactive GUI application to load in desired variants and see their impacts
+(2) HTML-based plotting via Bokeh that outputs cleaner, visually appealing plots
+
+Future work will add interactivity to (2) to allow the user to change criteria for the model (similar to (1)).
+
+All scripts are found in the "scripts" directory.
+All image and HTML outputs are found in the "outputs" subdirectory.
+PDFs of all supporting papers can be found in the "supporting_papers" directory.
+For best performance when using (2) to generate HTML plots, please install the Ariel-specific 'Gilroy' font packages found in the "fonts" directory.
+
 Dependencies:
 * Python 3
 * NumPy
@@ -16,8 +27,14 @@ Dependencies:
 * Matplotlib
 * Pandas
 * PyQt5
+* Bokeh
 
-Run using:
+Run (1) using:
 ```
 python3 duct_model_events.py
+```
+
+Run (2) using:
+```
+python3 oop_duct_model.py
 ```

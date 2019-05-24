@@ -106,7 +106,7 @@ def graph_CFTR(model_results, filename):
 	plt.ylabel('Chloride Conc. (mM)')
 	plt.legend(loc = 'right')
 
-	plt.savefig(filename) # store local copy for later use
+	plt.savefig('outputs/' + filename) # store local copy for later use
 	plt.show()
 	return filename
 
@@ -195,8 +195,7 @@ def antiporters_calc(input_dict, t_on, t_off, t_end):
 	for option in antiporter_options:
 		cond['ap_status'] = option[0]
 		cond['apb_status'] = option[1]
-		print(cond['ap_status'])
-		print(cond['apb_status'])
+		
 		# Period Before gcftr opens
 		cond['gcftr'] = init_cond['gcftrbase']
 		y0_0 = [cond['bi'], cond['bl'], cond['ci'], cond['ni'], cond['gcftr']]
@@ -255,7 +254,7 @@ def graph_antiporters(model_results, filename):
 		if i+1 == 1:
 			plt.title('Antiporters ON/OFF')
 
-	plt.savefig(filename, transparent = True)
+	plt.savefig('outputs/' + filename, transparent = True)
 	plt.show()
 	return filename
 
@@ -277,13 +276,13 @@ def calc_variant_impact(input_dict, t_on, t_off, t_end, variant_input_dict):
 	total_impact = np.mean(variant_wt_func_list)
 
 	# Adjust for change in chloride transport from Cutting Paper
-	cond['cond_adj'] = total_impact / 100
+	cond['variant_adj'] = total_impact / 100
 
 	# Period Before gcftr opens
 	cond['gcftr'] = init_cond['gcftrbase']
 	y0_0 = [cond['bi'], cond['bl'], cond['ci'], cond['ni'], cond['gcftr']]
 	state0 = solve_ivp(wrapper_fxn, [0,t_on], y0_0)
-	print(cond['cond_adj'])
+
 	# Period where gcftr is open
 	# Turn gcftr 'on' and re-initialize boundary conditions
 	cond['gcftr'] = cond['gcftron']
@@ -310,7 +309,7 @@ def calc_variant_impact(input_dict, t_on, t_off, t_end, variant_input_dict):
 	ni_graph = np.concatenate([state0['y'][3], state1['y'][3], state2['y'][3]])
 
 	model_results.append([[t_graph, bi_graph, bl_graph, ci_graph, ni_graph], t_on, t_off, t_end, variant_input_dict])
-	print(str(len(model_results)) + 'is the length of the array')
+
 	return model_results
 
 def graph_variant_impact(model_results, filename):
@@ -361,7 +360,7 @@ def graph_variant_impact(model_results, filename):
 
 
 
-	plt.savefig(filename) # store local copy for later use
+	plt.savefig('outputs/' + filename) # store local copy for later use
 	plt.show()
 	return filename
 
@@ -386,7 +385,6 @@ def calc_smoking_impact(input_dict, t_on, t_off, t_end, smoking_status):
 	cond['gcftr'] = init_cond['gcftrbase']
 	y0_0 = [cond['bi'], cond['bl'], cond['ci'], cond['ni'], cond['gcftr']]
 	state0 = solve_ivp(wrapper_fxn, [0,t_on], y0_0)
-	print(cond['smoke_adj'])
 
 	# Period where gcftr is open
 	# Turn gcftr 'on' and re-initialize boundary conditions
@@ -414,7 +412,7 @@ def calc_smoking_impact(input_dict, t_on, t_off, t_end, smoking_status):
 	ni_graph = np.concatenate([state0['y'][3], state1['y'][3], state2['y'][3]])
 
 	model_results.append([[t_graph, bi_graph, bl_graph, ci_graph, ni_graph], t_on, t_off, t_end, smoking_status])
-	print(str(len(model_results)) + 'is the length of the array')
+
 	return model_results
 
 def graph_smoking_impact(model_results, filename):
@@ -465,7 +463,7 @@ def graph_smoking_impact(model_results, filename):
 
 
 
-	plt.savefig(filename) # store local copy for later use
+	plt.savefig('outputs/' + filename) # store local copy for later use
 	plt.show()
 	return filename
 
@@ -499,8 +497,6 @@ def calc_var_smoke_impact(input_dict, t_on, t_off, t_end, variant_input_dict, sm
 	cond['gcftr'] = init_cond['gcftrbase']
 	y0_0 = [cond['bi'], cond['bl'], cond['ci'], cond['ni'], cond['gcftr']]
 	state0 = solve_ivp(wrapper_fxn, [0,t_on], y0_0)
-	print(cond['smoke_adj'])
-	print(cond['cond_adj'])
 
 	# Period where gcftr is open
 	# Turn gcftr 'on' and re-initialize boundary conditions
@@ -528,7 +524,7 @@ def calc_var_smoke_impact(input_dict, t_on, t_off, t_end, variant_input_dict, sm
 	ni_graph = np.concatenate([state0['y'][3], state1['y'][3], state2['y'][3]])
 
 	model_results.append([[t_graph, bi_graph, bl_graph, ci_graph, ni_graph], t_on, t_off, t_end, variant_input_dict, smoking_status])
-	print(str(len(model_results)) + 'is the length of the array')
+
 	return model_results
 
 def graph_var_smoke_impact(model_results, filename):
@@ -580,6 +576,6 @@ def graph_var_smoke_impact(model_results, filename):
 
 
 
-	plt.savefig(filename) # store local copy for later use
+	plt.savefig('outputs/' + filename) # store local copy for later use
 	plt.show()
 	return filename
