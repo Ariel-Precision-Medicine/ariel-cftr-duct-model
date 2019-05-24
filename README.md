@@ -18,6 +18,7 @@ Future work will add interactivity to (2) to allow the user to change criteria f
 All scripts are found in the "scripts" directory.
 All image and HTML outputs are found in the "outputs" subdirectory.
 PDFs of all supporting papers can be found in the "supporting_papers" directory.
+
 For best performance when using (2) to generate HTML plots, please install the Ariel-specific 'Gilroy' font packages found in the "fonts" directory.
 
 Dependencies:
