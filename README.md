@@ -9,9 +9,10 @@ Model has been translated from XPPAUT to Python for flexibility and future use.
 
 Variant functionality has not been rigorously verified, but source is Cutting Paper for residual CFTR fxn found here: https://www.ncbi.nlm.nih.gov/pubmed/29805046
 
-Currently, two display options are available:
+Currently, three options are available:
 (1) a user-interactive GUI application to load in desired variants and see their impacts
 (2) HTML-based plotting via Bokeh that outputs cleaner, visually appealing plots
+(3) a preliminary testing suite for the model [incomplete]
 
 Future work will add interactivity to (2) to allow the user to change criteria for the model (similar to (1)).
 
@@ -38,4 +39,9 @@ python3 duct_model_events.py
 Run (2) using:
 ```
 python3 oop_duct_model.py
+```
+
+Run (3) using:
+```
+python3 test_duct_model.py
 ```
