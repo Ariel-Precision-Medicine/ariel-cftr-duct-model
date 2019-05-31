@@ -6,8 +6,8 @@
 
 from bokeh.layouts import column, row, gridplot
 from bokeh.plotting import show
-from bokeh_plotting import run_model_CFTR, graph_CFTR
-from DCW_duct_model import init_cond
+from bokeh_plotting import run_model_CFTR, graph_CFTR, graph_xd_demo
+from dcw_duct_model import init_cond
 
 import copy
 
@@ -28,6 +28,8 @@ class Duct_Cell():
 						  'alcohol_adj': None}
 
 		self.graphs = {'WT CFTR': None, 'Variants CFTR': None, 'Variants & Smoking CFTR': None}
+
+		self.data = {'WT CFTR': None, 'Variants CFTR': None, 'Variants & Smoking CFTR': None}
 
 	def report_influences(self):
 		# Printout of influences added to model
@@ -71,46 +73,46 @@ class Duct_Cell():
 			self.graphs['Variants & Smoking CFTR'] = graph_CFTR(run_model_CFTR(variant_and_smoking_input_dict, 20000, 120000, 200000), 'Variants_And_Smoking_CFTR_plot', 'Duct Modeling Differential Equation Analysis (WT + Variants + Smoking)')
 			rows.append(self.graphs['Variants & Smoking CFTR'])
 
-		# if self.input_dict['variant_adj'] != None and self.input_dict['smoke_adj'] != None:
-		# 	variant_and_variants_input_dict = copy.deepcopy(self.input_dict)
-		# 	variant_input_dict['alcohol_adj'] = None
-		# 	self.graphs['Variants CFTR'] = graph_CFTR(run_model_CFTR(variant_input_dict, 20000, 120000, 200000, 'Variants_CFTR_plot', 'Duct Modeling Differential Equation Analysis (WT+Variants)'))
-		# 	rows.append(self.graphs['Variants CFTR'])
-
 		# make a grid
 		grid = gridplot(rows, plot_width = 550, plot_height = 350, sizing_mode = 'scale_width')
 		
 		# show the results
 		show(grid)
 
+	def generate_xd_demo_data(self):
+		# Run Mmdel with no influences
+		self.data['WT CFTR'] = run_model_CFTR(init_cond, 20000, 120000, 200000)
+		# Run model with variant influences
+		if self.input_dict['variant_adj'] != None:
+			variant_input_dict = copy.deepcopy(self.input_dict)
+			variant_input_dict['smoke_adj'] = None
+			variant_input_dict['alcohol_adj'] = None
+			self.data['Variants CFTR'] = run_model_CFTR(variant_input_dict, 20000, 120000, 200000)
+		# Run model with smoking and variants
+		if self.input_dict['variant_adj'] != None and self.input_dict['smoke_adj'] != None:
+			variant_and_smoking_input_dict = copy.deepcopy(self.input_dict)
+			variant_and_smoking_input_dict['alcohol_adj'] = None
+			self.data['Variants & Smoking CFTR'] = run_model_CFTR(variant_and_smoking_input_dict, 20000, 120000, 200000)
+
+	def generate_xd_graphs(self):
+		self.generate_xd_demo_data()
+		# Call graphing function
+		graph_xd_demo(self.data['WT CFTR'], self.data['Variants CFTR'], self.data['Variants & Smoking CFTR'])
+
+
+
 
 
 wt_cell = Duct_Cell()
 wt_cell.report_influences()
-wt_cell.add_smoking_influence(0.25)
-wt_cell.add_variant_influence(0.27)
+# wt_cell.add_smoking_influence(0.50)
+wt_cell.add_variant_influence(0.266)
 wt_cell.report_influences()
-wt_cell.generate_CFTR_graphs()
+# wt_cell.generate_CFTR_graphs()
+wt_cell.generate_xd_graphs()
 
-##############################
-# https://demo.bokeh.org/sliders
-# ^ Server-style app options, can allow us to change parameters
+ 
 
 
-# from bokeh.plotting import figure, output_file, show
 
-# # prepare some data
-# x = [1, 2, 3, 4, 5]
-# y = [6, 7, 2, 4, 5]
 
-# # output to static HTML file
-# output_file("lines.html")
-
-# # create a new plot with a title and axis labels
-# p = figure(title="simple line example", x_axis_label='x', y_axis_label='y')
-
-# # add a line renderer with legend and line thickness
-# p.line(x, y, legend="Temp.", line_width=2)
-
-# # show the results
-# show(p)

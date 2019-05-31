@@ -16,7 +16,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import numpy.random as rnd
 import copy
-from DCW_duct_model import duct_model_system, init_cond
+from dcw_duct_model import duct_model_system, init_cond
 
 def graph_generation(graph_type, input_dict, variant_impact = None, smoking_status = None):
 	filename = None

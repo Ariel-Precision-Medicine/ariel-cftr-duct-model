@@ -6,7 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import numpy.random as rnd
 import copy
-from DCW_duct_model import duct_model_system, init_cond
+from dcw_duct_model import duct_model_system, init_cond
 
 from bokeh.plotting import figure, output_file, show
 from bokeh.layouts import column, row
@@ -140,4 +140,136 @@ def graph_CFTR(model_results, filename, title):
 
 	return plot_bicarb, plot_chloride
 
-graph_CFTR(run_model_CFTR(init_cond, 20000, 120000, 200000),'CFTR_plot', 'Duct Modeling Differential Equation Analysis')
+
+def graph_xd_demo(WT, variants = None, variants_and_smoking = None):
+	# Generate title strings for graph and output file
+	title, filename  = generate_xd_title(WT, variants, variants_and_smoking)
+
+	# Unpack WT variables
+	graphing_dict, times, graphing_strings = WT[0], WT[1], WT[2]
+	time_adj = 20000
+	t = graphing_dict['time'] / time_adj
+	bi = graphing_dict['bi']
+	bl = graphing_dict['bl']
+	ci = graphing_dict['ci']
+	ni = graphing_dict['ni']
+	cl = 160 - bl # from DCW model assumptions
+	t_on = times['t_on'] / time_adj
+	t_off = times['t_off'] / time_adj
+	t_end = times['t_end'] / time_adj
+
+	# Create output file
+	output_file('outputs/' + filename + '.html')
+	# Create new plot with title and axis
+	plot_bicarb = figure(title = title, x_axis_label = 'time (min)',
+						 y_axis_label = 'Bicarb Conc. (mM)', y_range = (0, 150),
+						 width = 1000)
+
+	channel_open_b = plot_bicarb.vbar(x=np.average([t_on, t_off]), bottom=0,
+									  top=np.max(bl), color='gray', 
+									  width=t_off-t_on, fill_alpha = 0.1)
+
+	wt_lum_bicarb = plot_bicarb.line(t, bl, line_width = 3, line_color = '#34344A')
+	wt_intra_bicarb = plot_bicarb.line(t, bi, line_width = 3, line_color = '#7FE0CB')
+	peak_bicarb = plot_bicarb.circle(t_off, np.max(bl),size=15, color='red', 
+									 alpha=0.5)
+
+	secretion_text = 'Peak Secretion @ '+str(np.max(bl).round(0))+' mM'
+
+	# Plot additional lines if present
+	if variants != None:
+		# Unpack variables
+		graphing_dict, times, graphing_strings = variants[0], variants[1], variants[2]
+		time_adj = 20000
+		variants_t = graphing_dict['time'] / time_adj
+		variants_bi = graphing_dict['bi']
+		variants_bl = graphing_dict['bl']
+		variants_ci = graphing_dict['ci']
+		variants_ni = graphing_dict['ni']
+		variants_cl = 160 - bl # from DCW model assumptions
+		variants_lum_bicarb = plot_bicarb.line(variants_t, variants_bl, line_width = 3, line_color = '#34344A', line_dash = 'dashed', alpha = 0.75)
+		variants_intra_bicarb = plot_bicarb.line(variants_t, variants_bi, line_width = 3, line_color = '#7FE0CB', line_dash = 'dashed', alpha = 0.75)
+		if variants_and_smoking == None:
+			legend = Legend(items=[
+					    	("Luminal Bicarbonate (WT)", [wt_lum_bicarb]),
+					    	("Luminal Bicarbonate (WT + Variants)", [variants_lum_bicarb]),
+						    ("Intracellular Bicarbonate (WT)" , [wt_intra_bicarb]),
+						    ("Intracellular Bicarbonate (WT + Variants)", [variants_intra_bicarb]),
+						    (secretion_text , [peak_bicarb]),
+						    ("CFTR Channel Open", [channel_open_b])
+									], location="center")
+
+	if variants_and_smoking != None:
+		# Unpack variables
+		graphing_dict, times, graphing_strings = variants_and_smoking[0], variants_and_smoking[1], variants_and_smoking[2]
+		time_adj = 20000
+		v_and_s_t = graphing_dict['time'] / time_adj
+		v_and_s_bi = graphing_dict['bi']
+		v_and_s_bl = graphing_dict['bl']
+		v_and_s_ci = graphing_dict['ci']
+		v_and_s_ni = graphing_dict['ni']
+		v_and_s_cl = 160 - bl # from DCW model assumptions
+		v_and_s_lum_bicarb = plot_bicarb.line(v_and_s_t, v_and_s_bl, line_width = 3, line_color = '#34344A', line_dash = 'dashed', alpha = 0.50)
+		v_and_s_intra_bicarb = plot_bicarb.line(v_and_s_t, v_and_s_bi, line_width = 3, line_color = '#7FE0CB', line_dash = 'dashed', alpha = 0.50)
+
+		legend = Legend(items=[
+				    	("Luminal Bicarbonate (WT)", [wt_lum_bicarb]),
+				    	("Luminal Bicarbonate (WT + Variants)", [variants_lum_bicarb]),
+				    	("Luminal Bicarbonate (WT + Variants + Smoking)", [v_and_s_lum_bicarb]),
+					    ("Intracellular Bicarbonate (WT)" , [wt_intra_bicarb]),
+					    ("Intracellular Bicarbonate (WT + Variants)", [variants_intra_bicarb]),
+					    ("Intracellular Bicarbonate (WT + Variants + Smoking)", [v_and_s_intra_bicarb]),
+					    (secretion_text , [peak_bicarb]),
+					    ("CFTR Channel Open", [channel_open_b])
+								], location="center")
+
+	elif variants == None and variants_and_smoking == None:
+		legend = Legend(items=[
+				    	("Luminal Bicarbonate"   , [wt_lum_bicarb]),
+					    ("Intracellular Bicarbonate" , [wt_intra_bicarb]),
+					    (secretion_text , [peak_bicarb]),
+					    ("CFTR Channel Open", [channel_open_b])
+								], location="center")
+
+	# Styling for Plot
+	plot_bicarb.add_layout(legend, 'right')
+	plot_bicarb.legend.label_text_font = 'gilroy'
+	plot_bicarb.title.text_font = 'gilroy'
+	plot_bicarb.title.text_font_style = 'bold'
+	plot_bicarb.yaxis.axis_label_text_font = 'gilroy'
+	plot_bicarb.yaxis.axis_label_text_font_style = 'normal'
+	plot_bicarb.xaxis.axis_label_text_font = 'gilroy'
+	plot_bicarb.xaxis.axis_label_text_font_style = 'normal'
+
+	show(plot_bicarb)
+
+
+
+def generate_xd_title(WT, variants, variants_and_smoking):
+	output = None
+	filename = 'xd_demo'
+	if variants == None and variants_and_smoking == None:
+		output = 'Duct Modeling Differential Equation Analysis (WT)'
+	elif variants == None and variants_and_smoking != None:
+		output = 'Duct Modeling Differential Equation Analysis (WT + Smoking)'
+	elif variants != None and variants_and_smoking == None:
+		output = 'Duct Modeling Differential Equation Analysis (WT + Variants)'
+	elif variants != None and variants_and_smoking != None:
+		output = 'Duct Modeling Differential Equation Analysis (WT + Variants + Smoking)'
+	return output, filename
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
