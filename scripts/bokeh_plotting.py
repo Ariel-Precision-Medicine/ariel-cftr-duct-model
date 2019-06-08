@@ -91,7 +91,10 @@ def graph_CFTR(model_results, filename, title):
 				    ("Intracellular Bicarbonate" , [intra_bicarb]),
 				    (secretion_text , [peak_bicarb]),
 				    ("CFTR Channel Open", [channel_open_b])
-							], location="center")
+							])
+
+	legend.location = 'top_right'
+	legend.click_policy = 'hide'
 
 	# Styling for Plot
 	plot_bicarb.add_layout(legend, 'right')
@@ -124,7 +127,10 @@ def graph_CFTR(model_results, filename, title):
 			    	("Luminal Chloride"   , [lum_chloride]),
 				    ("Intracellular Chloride" , [intra_chloride]),
 				    ("CFTR Channel Open", [channel_open_c])
-							], location="center")
+							])
+
+	legend.location = 'top_right'
+	legend.click_policy = 'hide'
 
 	# Styling for Plot
 	plot_chloride.add_layout(legend, 'right')

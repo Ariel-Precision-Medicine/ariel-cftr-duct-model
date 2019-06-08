@@ -4,10 +4,13 @@
 # CFTR Expert System
 ### Confidential ###
 
-from bokeh.layouts import column, row, gridplot
+from bokeh.layouts import column, row, gridplot, grid
 from bokeh.plotting import show
 from bokeh_plotting import run_model_CFTR, graph_CFTR, graph_xd_demo
+from bokeh.models import Panel, Tabs
 from dcw_duct_model import init_cond
+from bokeh.models.widgets import Dropdown, CheckboxButtonGroup, Select, Button, Div, RadioButtonGroup
+import pandas as pd
 
 import copy
 
@@ -99,6 +102,51 @@ class Duct_Cell():
 		# Call graphing function
 		graph_xd_demo(self.data['WT CFTR'], self.data['Variants CFTR'], self.data['Variants & Smoking CFTR'])
 
+	def generate_tabbed_output(self):
+		self.graphs['WT CFTR'] = graph_CFTR(run_model_CFTR(init_cond, 20000, 120000, 200000),'WT_CFTR_plot', 'Duct Modeling Differential Equation Analysis (WT)')
+		tab_bicarb, tab_chloride = self.graphs['WT CFTR']
+		tab_bicarb.plot_width = 800
+		tab_chloride.plot_width = 800
+		tab_bicarb = Panel(child=tab_bicarb, title="Bicarbonate Transport")
+		tab_chloride = Panel(child=tab_chloride, title="Chloride Transport")
+		tabs = Tabs(tabs=[ tab_bicarb, tab_chloride ], width=1000)
+
+		self.variant_ops = pd.read_csv('cutting_variants.csv')['variant']
+		self.variant_dict = dict()
+		for i in range(len(self.variant_ops)):
+			self.variant_dict[pd.read_csv('cutting_variants.csv')['variant'][i]] = pd.read_csv('cutting_variants.csv')['wt_func'][i]
+		menu = []
+		for key in self.variant_dict:
+			menu.append(key)
+
+		# dropdown = Dropdown(label="CFTR Variant List", button_type="danger", menu=menu)
+		menu.insert(0, '-')
+		select = Select(title="CFTR Variants", value=None, options=menu, width = 100)
+		button_var_add = Button(label="Add Variant")
+		button_var_remove = Button(label="Remove Variant")
+		current_variants_string = """see variants here,see variants here,see variants here,see variants here,see variants here"""
+		div = Div(text=current_variants_string,width=300, height=50)
+		select_row = row(select, div, width = 400)
+		var_row = row(button_var_add, button_var_remove, width = 400)
+		smoking_radio = RadioButtonGroup(labels=["Non-Smoker", "Light Smoker", "Heavy Smoker", "Past Smoker"])
+		drinking_radio = RadioButtonGroup(labels=["Non-Drinker", "Light Drinker", "Heavy Drinker"])
+		ariel_div = Div(text = """<b>Duct Model </b> [Property of <a 
+						href="https://www.arielmedicine.com/" target="_blank">Ariel Precision 
+						Medicine</a>]""", width=400, height=25)
+		smoking_div = Div(text = """<b>Patient Smoking Status </b> [Source: <a 
+						href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1412225/"
+						target="_blank">PMID 5036091</a>]""", width=400, height=25)
+		drinking_div = Div(text = """<b>Patient Drinking Status </b> [Source: <a 
+						href="https://www.google.com/"
+						target="_blank">PMID Needs Updated</a>]""", width=400, height=25)
+		variants_div = Div(text = """<b>Patient CFTR Status </b> [Source: <a 
+						href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6124440/"
+						target="_blank">PMID 30046002</a>]""", width=400, height=25)
+		input_column = column(ariel_div, variants_div, select_row,
+								var_row, smoking_div, smoking_radio,
+								drinking_div, drinking_radio)
+		l = grid([[input_column,tabs]])
+		show(l)
 
 
 
@@ -109,8 +157,8 @@ wt_cell.report_influences()
 wt_cell.add_variant_influence(0.266)
 wt_cell.report_influences()
 # wt_cell.generate_CFTR_graphs()
-wt_cell.generate_xd_graphs()
-
+# wt_cell.generate_xd_graphs()
+wt_cell.generate_tabbed_output()
  
 
 
