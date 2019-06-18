@@ -110,16 +110,17 @@ class Duct_Cell():
 		graph_xd_demo(self.data['WT CFTR'], self.data['Variants CFTR'], self.data['Variants & Smoking CFTR'])
 
 	def generate_tabbed_output(self):
-		self.graphs['WT CFTR'] = graph_CFTR(run_model_CFTR(init_cond, 20000, 120000, 200000),'WT_CFTR_plot', 'Duct Modeling Differential Equation Analysis (WT)')
-		tab_bicarb, tab_chloride = self.graphs['WT CFTR']
+		self.patient_graph()
+		tab_bicarb, tab_chloride = self.graphs['Patient']
 		tab_bicarb.plot_width = 800
 		tab_chloride.plot_width = 800
-		tab_bicarb = Panel(child=tab_bicarb, title="Bicarbonate Transport")
-		tab_chloride = Panel(child=tab_chloride, title="Chloride Transport")
-		tabs = Tabs(tabs=[ tab_bicarb, tab_chloride ], width=1000)
+		panel_bicarb = Panel(child=tab_bicarb, title="Bicarbonate Transport")
+		panel_chloride = Panel(child=tab_chloride, title="Chloride Transport")
+		tabs = Tabs(tabs=[ panel_bicarb, panel_chloride ], width=1000)
 		var_menu = self.gen_var_menu()
-		display = self.process_widgets(tabs, var_menu)
-		show(display)
+		widget_column, widgets = self.process_widgets(var_menu)
+		layout = grid([[widget_column,tabs]])
+		return layout, widgets, tab_bicarb, tab_chloride
 
 	def gen_var_menu(self):
 		self.variant_ops = pd.read_csv('cutting_variants.csv')['variant']
@@ -132,12 +133,11 @@ class Duct_Cell():
 		var_menu.insert(0, 'Wild Type')
 		return var_menu
 
-	def process_widgets(self, tabs, var_menu):
+	def process_widgets(self, var_menu):
 		select_cftr1 = Select(title="CFTR Variant 1", value=None, options=var_menu, width = 100)
 		select_cftr2 = Select(title="CFTR Variant 2", value=None, options=var_menu, width = 100)
-		button_var_reset = Button(label="Reset Variants", width=75)
 		current_variants_string = """see variants here,see variants here,see variants here,see variants here,see variants here"""
-		select_row = row(select_cftr1, select_cftr2, button_var_reset, width = 400)
+		select_row = row(select_cftr1, select_cftr2, width = 400)
 		smoking_radio = RadioButtonGroup(labels=["Non-Smoker", "Light Smoker", "Heavy Smoker", "Past Smoker"])
 		drinking_radio = RadioButtonGroup(labels=["Non-Drinker", "Drinker"])
 		ariel_div = Div(text = """<b>Duct Model </b> [Property of <a 
@@ -152,33 +152,39 @@ class Duct_Cell():
 		variants_div = Div(text = """<b>Patient CFTR Status </b> [Source: <a 
 						href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6124440/"
 						target="_blank">PMID 30046002</a>]""", width=400, height=25)
-		input_column = column(ariel_div, variants_div, select_row,
+		widget_column = column(ariel_div, variants_div, select_row,
 								smoking_div, smoking_radio,
 								drinking_div, drinking_radio)
-		layout = grid([[input_column,tabs]])
-		return layout
+		widgets = {'Variant1': select_cftr1, 'Variant2': select_cftr2, 'smoking_status': smoking_radio, 'alcohol_status': drinking_radio}
+		# widgets = [select_cftr1, select_cftr2, smoking_radio, drinking_radio]
+		# for item in widgets:
+		# 	item.on_change('value', self.user_inputs)
+		return widget_column, widgets
 
+	# def user_inputs(self):
+	# 	self.variant_adj = process_variants(self.widgets['Variant1'].value, self.widgets['Variant2'].value)
+	# 	self.smoke_adj = process_smoking(self.widgets['smoking_status'].value)
+	# 	self.alcohol_adj = process_alcohol(self.widgets['alcohol_status'].value)
 
-	def fancy_graph(self):
+	# def process_variants(var1, var2):
+	# 	print(var1, var2)
+
+	# def process_smoking(smoking_status):
+	# 	print(smoking_status)
+
+	# def process_alcohol(alcohol_status):
+	# 	print(alcohol_status)
+
+	def patient_graph(self):
 		input_dict = copy.deepcopy(self.input_dict)
 		p1, p2 = graph_CFTR(run_model_CFTR(input_dict, 20000, 120000, 200000), 'Variants_Smoking_and_Alcohol_CFTR_plot', 'Duct Modeling Differential Equation Analysis (Variants + Smoking + Alcohol)')
 		wt_results = run_model_CFTR(init_cond, 20000, 120000, 200000)
-		p3, p4 = patient_plot_CFTR(p1, p2, wt_results, None, None)
-		show (p3)
-		show (p4)
+		self.graphs['Patient'] = patient_plot_CFTR(p1, p2, wt_results, None, None)
 
-wt_cell = Duct_Cell()
-wt_cell.report_influences()
-wt_cell.add_smoking_influence(0.30)
-wt_cell.add_variant_influence(0.266)
-wt_cell.add_alcohol_influence(0.75)
-wt_cell.report_influences()
-wt_cell.fancy_graph()
-# wt_cell.generate_WT_graphs()
-# wt_cell.generate_CFTR_graphs()
-# wt_cell.generate_xd_graphs()
-# wt_cell.generate_tabbed_output()
- 
+	def patient_graph_server(input_dict):
+		p1, p2 = graph_CFTR(run_model_CFTR(input_dict, 20000, 120000, 200000), 'Variants_Smoking_and_Alcohol_CFTR_plot', 'Duct Modeling Differential Equation Analysis (Variants + Smoking + Alcohol)')
+		wt_results = run_model_CFTR(init_cond, 20000, 120000, 200000)
+		return patient_plot_CFTR(p1, p2, wt_results, None, None)
 
 
 
