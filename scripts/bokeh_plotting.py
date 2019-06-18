@@ -121,7 +121,7 @@ def graph_CFTR(model_results, filename, title):
 	intra_chloride = plot_chloride.line(t, ci, line_width = 3, line_color = '#7FE0CB')
 
 	plot_chloride.background_fill_color = '#F4F1E1'
-	plot_chloride.background_fill_alpha = 0.5
+	plot_chloride.background_fill_alpha = 0.25
 
 	legend = Legend(items=[
 			    	("Luminal Chloride"   , [lum_chloride]),
@@ -136,7 +136,7 @@ def graph_CFTR(model_results, filename, title):
 	plot_chloride.add_layout(legend, 'right')
 	plot_chloride.legend.label_text_font = 'gilroy'
 	plot_chloride.legend.background_fill_color = '#F4F1E1'
-	plot_chloride.legend.background_fill_alpha = 0.5
+	plot_chloride.legend.background_fill_alpha = 0.25
 	plot_chloride.title.text_font = 'gilroy'
 	plot_chloride.title.text_font_style = 'bold'
 	plot_chloride.yaxis.axis_label_text_font = 'gilroy'
@@ -144,7 +144,29 @@ def graph_CFTR(model_results, filename, title):
 	plot_chloride.xaxis.axis_label_text_font = 'gilroy'
 	plot_chloride.xaxis.axis_label_text_font_style = 'normal'
 
-	return plot_bicarb, plot_chloride
+	return plot_bicarb, plot_chloride,
+
+
+def patient_plot_CFTR(plot_bicarb_patient, plot_chloride_patient, WT_model_results, filename, title):
+	# Unpack variables
+	graphing_dict, times, graphing_strings = WT_model_results[0], WT_model_results[1], WT_model_results[2]
+	time_adj = 20000
+	t = graphing_dict['time'] / time_adj
+	bi = graphing_dict['bi']
+	bl = graphing_dict['bl']
+	ci = graphing_dict['ci']
+	ni = graphing_dict['ni']
+	cl = 160 - bl # from DCW model assumptions
+	t_on = times['t_on'] / time_adj
+	t_off = times['t_off'] / time_adj
+	t_end = times['t_end'] / time_adj
+
+	wt_lum_bicarb = plot_bicarb_patient.line(t, bl, line_width = 3, line_color = '#34344A', alpha=0.25, line_dash='dashed', line_cap='round', legend="WT Luminal")
+	wt_intra_bicarb = plot_bicarb_patient.line(t, bi, line_width = 3, line_color = '#7FE0CB', alpha=0.25, line_dash='dashed', line_cap='round', legend="WT Intracellular")
+	wt_lum_chloride = plot_chloride_patient.line(t, cl, line_width = 3, line_color = '#34344A', alpha=0.25, line_dash='dashed', line_cap='round', legend="WT Luminal")
+	wt_intra_chloride = plot_chloride_patient.line(t, ci, line_width = 3, line_color = '#7FE0CB', alpha=0.25, line_dash='dashed', line_cap='round', legend="WT Intracellular")
+
+	return plot_bicarb_patient, plot_chloride_patient
 
 
 def graph_xd_demo(WT, variants = None, variants_and_smoking = None):

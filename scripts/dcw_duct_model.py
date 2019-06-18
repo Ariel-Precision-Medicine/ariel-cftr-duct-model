@@ -121,7 +121,7 @@ def duct_model_system(t, y, cond):
 	# Flux Calculations
 	jnbc = knbc*(v-enbc)
 	jbcftr = kbcf*(v-eb) * smoke_adj
-	jccftr = kccf*(v-ec) * variant_adj
+	jccftr = (kccf*(v-ec) * variant_adj) * alcohol_adj
 
 	# Antiporter Status (Open = True, Close = False)
 	if ap_status:
