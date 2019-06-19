@@ -13,6 +13,7 @@ Currently, three options are available:
 (1) a user-interactive GUI application to load in desired variants and see their impacts
 (2) HTML-based plotting via Bokeh that outputs cleaner, visually appealing plots
 (3) a preliminary testing suite for the model [incomplete]
+(4) a local bokeh server with an instance of the model for user interactivity and further product development. This is currently functional. Next steps will be to explore how to deploy via Django and add directly to the Expert System on the Ariel server.
 
 Future work will add interactivity to (2) to allow the user to change criteria for the model (similar to (1)).
 
@@ -44,4 +45,9 @@ python3 oop_duct_model.py
 Run (3) using:
 ```
 python3 test_duct_model.py
+```
+
+Run (4) using:
+```
+bokeh serve --show serverductmodel.py
 ```

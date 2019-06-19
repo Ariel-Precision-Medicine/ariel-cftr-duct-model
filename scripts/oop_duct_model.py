@@ -9,7 +9,7 @@ from bokeh.plotting import show
 from bokeh_plotting import run_model_CFTR, graph_CFTR, graph_xd_demo, patient_plot_CFTR
 from bokeh.models import Panel, Tabs
 from dcw_duct_model import init_cond
-from bokeh.models.widgets import Dropdown, CheckboxButtonGroup, Select, Button, Div, RadioButtonGroup
+from bokeh.models.widgets import Dropdown, CheckboxButtonGroup, Select, Button, Div, RadioButtonGroup, TextInput
 import pandas as pd
 
 import copy
@@ -136,26 +136,31 @@ class Duct_Cell():
 	def process_widgets(self, var_menu):
 		select_cftr1 = Select(title="CFTR Variant 1", value=None, options=var_menu, width = 100)
 		select_cftr2 = Select(title="CFTR Variant 2", value=None, options=var_menu, width = 100)
-		current_variants_string = """see variants here,see variants here,see variants here,see variants here,see variants here"""
 		select_row = row(select_cftr1, select_cftr2, width = 400)
+		text_input = TextInput(width=200)
 		smoking_radio = RadioButtonGroup(labels=["Non-Smoker", "Light Smoker", "Heavy Smoker", "Past Smoker"])
 		drinking_radio = RadioButtonGroup(labels=["Non-Drinker", "Drinker"])
+		pt_div = Div(text = """<b>Patient Identifier</b>""", width=110, height=25, style={'font-family':'gilroy'})
 		ariel_div = Div(text = """<b>Duct Model </b> [Property of <a 
 						href="https://www.arielmedicine.com/" target="_blank">Ariel Precision 
-						Medicine</a>]""", width=400, height=25)
+						Medicine</a>]""", width=400, height=25, style={'font-family':'gilroy'})
 		smoking_div = Div(text = """<b>Patient Smoking Status </b> [Source: <a 
 						href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1412225/"
-						target="_blank">PMID 5036091</a>]""", width=400, height=25)
+						target="_blank">PMID 5036091</a>]""", width=400, height=25, style={'font-family':'gilroy'})
 		drinking_div = Div(text = """<b>Patient Drinking Status </b> [Source: <a 
 						href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4353632/"
-						target="_blank">PMID 25447846</a>]""", width=400, height=25)
+						target="_blank">PMID 25447846</a>]""", width=400, height=25, style={'font-family':'gilroy'})
 		variants_div = Div(text = """<b>Patient CFTR Status </b> [Source: <a 
 						href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6124440/"
-						target="_blank">PMID 30046002</a>]""", width=400, height=25)
+						target="_blank">PMID 30046002</a>]""", width=400, height=25, style={'font-family':'gilroy'})
+		save_button = Button(label='Save Patient Data', button_type='warning')
+		input_row = row(pt_div, text_input, width = 400)
 		widget_column = column(ariel_div, variants_div, select_row,
 								smoking_div, smoking_radio,
 								drinking_div, drinking_radio)
-		widgets = {'Variant1': select_cftr1, 'Variant2': select_cftr2, 'smoking_status': smoking_radio, 'alcohol_status': drinking_radio}
+		widgets = {'Variant1': select_cftr1, 'Variant2': select_cftr2,
+					'smoking_status': smoking_radio, 'alcohol_status': drinking_radio,
+					'pt_id':text_input}
 		# widgets = [select_cftr1, select_cftr2, smoking_radio, drinking_radio]
 		# for item in widgets:
 		# 	item.on_change('value', self.user_inputs)

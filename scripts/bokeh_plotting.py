@@ -12,6 +12,19 @@ from bokeh.plotting import figure, output_file, show
 from bokeh.layouts import column, row
 from bokeh.models import Legend
 
+import numpy.polynomial.polynomial as poly
+
+# Normalize length for graphing
+def fitting_wrapper_fxn(state):
+	graphing_strings = ['bi', 'bl', 'ci', 'ni']
+	results = dict()
+	new_t = np.linspace(state['t'][0], state['t'][-1], 500)
+	for item in graphing_strings:
+		coefs = poly.polyfit(state['t'], state['y'][graphing_strings.index(item)], 10)
+		ffit = poly.Polynomial(coefs)
+		results[item] = ffit(new_t)
+	results['time'] = new_t
+	return results
 
 def run_model_CFTR(input_dict, t_on, t_off, t_end):
 	times = {'t_on': t_on, 't_off': t_off, 't_end': t_end}
@@ -45,12 +58,26 @@ def run_model_CFTR(input_dict, t_on, t_off, t_end):
 	y0_2 = [cond['bi'], cond['bl'], cond['ci'], cond['ni'], cond['gcftr']]
 	state2 = solve_ivp(wrapper_fxn, [t_off,t_end], y0_2)
 
+	# op1 = fitting_wrapper_fxn(state0)['bl']
+	# op2 = fitting_wrapper_fxn(state1)['bl']
+	# op3 = fitting_wrapper_fxn(state2)['bl']
+	# ops = np.concatenate([op1,op2, op3])
+	# # print(ops)
+	# print(len(ops))
+
 	graphing_dict = dict()
-	graphing_dict['time'] = np.concatenate([state0['t'], state1['t'], state2['t']])
-	for variable in graphing_strings:
-		graphing_dict[variable] = np.concatenate([state0['y'][graphing_strings.index(variable)], 
-									state1['y'][graphing_strings.index(variable)],
-									state2['y'][graphing_strings.index(variable)]])
+	s0_res = fitting_wrapper_fxn(state0)
+	s1_res = fitting_wrapper_fxn(state1)
+	s2_res = fitting_wrapper_fxn(state2)
+	graphing_strings.append('time')
+	for item in graphing_strings:
+		graphing_dict[item] = np.concatenate([s0_res[item],s1_res[item], s2_res[item]])
+	# graphing_dict['time'] = np.concatenate([state0['t'], state1['t'], state2['t']])
+
+	# for variable in graphing_strings:
+	# 	graphing_dict[variable] = np.concatenate([state0['y'][graphing_strings.index(variable)], 
+	# 								state1['y'][graphing_strings.index(variable)],
+	# 								state2['y'][graphing_strings.index(variable)]])
 	return [graphing_dict, times, graphing_strings]
 
 def graph_CFTR(model_results, filename, title):
@@ -285,14 +312,6 @@ def generate_xd_title(WT, variants, variants_and_smoking):
 	elif variants != None and variants_and_smoking != None:
 		output = 'Duct Modeling Differential Equation Analysis (WT + Variants + Smoking)'
 	return output, filename
-
-
-
-
-
-
-
-
 
 
 
