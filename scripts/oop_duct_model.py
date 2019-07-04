@@ -28,7 +28,7 @@ class Duct_Cell():
 						  'ionstr': 160, 'gnaleak': 0.4, 'jac': 0.025, 
 						  'rat': 0.25, 'variant_adj': None, 'vr': 0.1, 'apb_status': False,
 						  'ap_status': False, 'gcftr': 0.00007, 'smoke_adj': None,
-						  'alcohol_adj': None}
+						  'alcohol_adj': None, 'therapeutics': 'None'}
 
 		self.graphs = {'WT CFTR': None, 'Variants CFTR': None, 'Variants & Smoking CFTR': None}
 
@@ -123,44 +123,57 @@ class Duct_Cell():
 		return layout, widgets, tab_bicarb, tab_chloride
 
 	def gen_var_menu(self):
-		self.variant_ops = pd.read_csv('cutting_variants.csv')['variant']
+		self.variant_ops = pd.read_csv('cutting_variant_data.csv')['Variant']
 		self.variant_dict = dict()
 		for i in range(len(self.variant_ops)):
-			self.variant_dict[pd.read_csv('cutting_variants.csv')['variant'][i]] = pd.read_csv('cutting_variants.csv')['wt_func'][i]
+			residual = self.remove_standard_error(pd.read_csv('cutting_variant_data.csv')['Residual'][i])
+			ivo = self.remove_standard_error(pd.read_csv('cutting_variant_data.csv')['Ivocaftor'][i])
+			lum = self.remove_standard_error(pd.read_csv('cutting_variant_data.csv')['Lumacaftor'][i])
+			combination = self.remove_standard_error(pd.read_csv('cutting_variant_data.csv')['Ivocaftor and Lumacaftor'][i])
+			individual_dict = {'Residual':residual, 'Ivocaftor':ivo, 'Lumacaftor':lum, 'Combination Therapy':combination}
+			self.variant_dict[pd.read_csv('cutting_variant_data.csv')['Variant'][i]] = individual_dict
 		var_menu = []
 		for key in self.variant_dict:
 			var_menu.append(key)
 		var_menu.insert(0, 'Wild Type')
 		return var_menu
 
+	def remove_standard_error(self, text_string):
+		return text_string[0:text_string.find(u'\u00b1')].strip()
+
 	def process_widgets(self, var_menu):
 		select_cftr1 = Select(title="CFTR Variant 1", value=None, options=var_menu, width = 100)
 		select_cftr2 = Select(title="CFTR Variant 2", value=None, options=var_menu, width = 100)
-		select_row = row(select_cftr1, select_cftr2, width = 400)
+		select_row = row(select_cftr1, select_cftr2, width = 500)
 		text_input = TextInput(width=200)
 		smoking_radio = RadioButtonGroup(labels=["Non-Smoker", "Light Smoker", "Heavy Smoker", "Past Smoker"])
 		drinking_radio = RadioButtonGroup(labels=["Non-Drinker", "Drinker"])
+		therapeutic_radio = RadioButtonGroup(labels=["None", "10uM Ivocaftor", "6uM Lumacaftor", "10uM Ivocaftor + 6uM Lumacaftor"])
 		pt_div = Div(text = """<b>Patient Identifier</b>""", width=110, height=25, style={'font-family':'gilroy'})
 		ariel_div = Div(text = """<b>Duct Model </b> [Property of <a 
 						href="https://www.arielmedicine.com/" target="_blank">Ariel Precision 
-						Medicine</a>]""", width=400, height=25, style={'font-family':'gilroy'})
-		smoking_div = Div(text = """<b>Patient Smoking Status </b> [Source: <a 
+						Medicine</a>]""", width=500, height=25, style={'font-family':'gilroy'})
+		smoking_div = Div(text = """<b>Smoking Status </b> [Source: <a 
 						href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1412225/"
-						target="_blank">PMID 5036091</a>]""", width=400, height=25, style={'font-family':'gilroy'})
-		drinking_div = Div(text = """<b>Patient Drinking Status </b> [Source: <a 
+						target="_blank">PMID 5036091</a>]""", width=500, height=25, style={'font-family':'gilroy'})
+		drinking_div = Div(text = """<b>Drinking Status </b> [Source: <a 
 						href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4353632/"
-						target="_blank">PMID 25447846</a>]""", width=400, height=25, style={'font-family':'gilroy'})
-		variants_div = Div(text = """<b>Patient CFTR Status </b> [Source: <a 
+						target="_blank">PMID 25447846</a>]""", width=500, height=25, style={'font-family':'gilroy'})
+		variants_div = Div(text = """<b>Patient CFTR Variants </b> [Source: <a 
 						href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6124440/"
-						target="_blank">PMID 30046002</a>]""", width=400, height=25, style={'font-family':'gilroy'})
+						target="_blank">PMID 30046002</a>]""", width=500, height=25, style={'font-family':'gilroy'})
+		therapeutics_div = Div(text = """<b>Therapeutics </b> [Source: <a 
+						href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6124440/"
+						target="_blank">PMID 30046002</a>]""", width=500, height=25, style={'font-family':'gilroy'})
 		save_button = Button(label='Save Patient Data', button_type='warning')
 		input_row = row(pt_div, text_input, width = 400)
 		widget_column = column(ariel_div, variants_div, select_row,
+								therapeutics_div, therapeutic_radio,
 								smoking_div, smoking_radio,
 								drinking_div, drinking_radio)
 		widgets = {'Variant1': select_cftr1, 'Variant2': select_cftr2,
 					'smoking_status': smoking_radio, 'alcohol_status': drinking_radio,
-					'pt_id':text_input}
+					'pt_id':text_input, 'therapeutics':therapeutic_radio}
 		# widgets = [select_cftr1, select_cftr2, smoking_radio, drinking_radio]
 		# for item in widgets:
 		# 	item.on_change('value', self.user_inputs)
@@ -190,7 +203,5 @@ class Duct_Cell():
 		p1, p2 = graph_CFTR(run_model_CFTR(input_dict, 20000, 120000, 200000), 'Variants_Smoking_and_Alcohol_CFTR_plot', 'Duct Modeling Differential Equation Analysis (Variants + Smoking + Alcohol)')
 		wt_results = run_model_CFTR(init_cond, 20000, 120000, 200000)
 		return patient_plot_CFTR(p1, p2, wt_results, None, None)
-
-
 
 

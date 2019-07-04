@@ -55,22 +55,44 @@ source = ColumnDataSource(data=dict(wt_bi_l = wt_bi_l,
 input_column, widgets = wt_cell.process_widgets(wt_cell.gen_var_menu())
 
 # Build Variant Resource Dictionary
-variant_ops = pd.read_csv('cutting_variants.csv')['variant']
+# variant_ops = pd.read_csv('cutting_variant_data.csv')['Variant']
+# variant_dict = dict()
+# for i in range(len(variant_ops)):
+# 	variant_dict[pd.read_csv('cutting_variants.csv')['Variant'][i]] = pd.read_csv('cutting_variants.csv')['wt_func'][i]
+
+def remove_standard_error(text_string):
+		return float(text_string[0:text_string.find(u'\u00b1')].strip())
+
+variant_ops = pd.read_csv('cutting_variant_data.csv')['Variant']
 variant_dict = dict()
 for i in range(len(variant_ops)):
-	variant_dict[pd.read_csv('cutting_variants.csv')['variant'][i]] = pd.read_csv('cutting_variants.csv')['wt_func'][i]
+	residual = remove_standard_error(pd.read_csv('cutting_variant_data.csv')['Residual'][i])
+	ivo = remove_standard_error(pd.read_csv('cutting_variant_data.csv')['Ivocaftor'][i])
+	lum = remove_standard_error(pd.read_csv('cutting_variant_data.csv')['Lumacaftor'][i])
+	combination = remove_standard_error(pd.read_csv('cutting_variant_data.csv')['Ivocaftor and Lumacaftor'][i])
+	individual_dict = {'Residual':residual, 'Ivocaftor':ivo, 'Lumacaftor':lum, 'Combination Therapy':combination}
+	variant_dict[pd.read_csv('cutting_variant_data.csv')['Variant'][i]] = individual_dict
 
 # Match variant impact to sweat chloride dictionary
-def process_var_impact(var1, var2):
-	if var1 == 'Wild Type':
-		var1_val = 100
-	else:
-		var1_val = variant_dict[var1]
-	if var2 == 'Wild Type':
-		var2_val = 100
-	else:
-		var2_val = variant_dict[var2]
-	return np.mean([var1_val, var2_val])/100
+def process_var_impact(var1, var2, therapeutic):
+	vardict = {var1:None, var2:None}
+	varlist = [var1, var2]
+	for item in varlist:
+		if item == None:
+			vardict[item] = 100
+		if item == 'Wild Type':
+			vardict[item] = 100
+		else:
+			if therapeutic == 'None':
+				vardict[item] = variant_dict[item]['Residual']
+			if therapeutic == '10uM Ivocaftor':
+				vardict[item] = variant_dict[item]['Ivocaftor']
+			if therapeutic == '6uM Lumacaftor':
+				vardict[item] = variant_dict[item]['Lumacaftor']
+			if therapeutic == '10uM Ivocaftor + 6uM Lumacaftor':
+				vardict[item] = variant_dict[item]['Combination Therapy']
+	output = np.mean([vardict[var1], vardict[var2]])/100
+	return output
 
 # Assign Smoking Penalty
 def process_smokers(smoking_status):
@@ -86,6 +108,20 @@ def process_alcohol(alcohol_status):
 	else:
 		input_data['alcohol_adj'] = 1
 
+# Update therapeutics
+def process_therapeutics(therapeutics_status):
+	if therapeutics_status != None:
+		if therapeutics_status == 'None':
+			input_data['therapeutics'] = 'None'
+		elif therapeutics_status == '10uM Ivocaftor':
+			input_data['therapeutics'] = 'Ivocaftor'
+		elif therapeutics_status == '6uM Lumacaftor':
+			input_data['therapeutics'] = 'Lumacaftor'
+		elif therapeutics_status == '10uM Ivocaftor + 6uM Lumacaftor':
+			input_data['therapeutics'] = 'Combination Therapy'
+	else:
+		input_data['therapeutics'] = 'None'
+
 # Catch Edge Case when WT input == None
 def assert_WT(value):
 	if value == None:
@@ -94,16 +130,6 @@ def assert_WT(value):
 		return value
 
 # Callback Functions
-def callback_var1(attr, old, new):
-	var1, var2 = assert_WT(widgets['Variant1'].value), assert_WT(widgets['Variant2'].value)
-	input_data['variant_adj'] = process_var_impact(var1, var2)
-	update_data()
-
-def callback_var2(attr, old, new):
-	var1, var2 = assert_WT(widgets['Variant1'].value), assert_WT(widgets['Variant2'].value)
-	input_data['variant_adj'] = process_var_impact(var1, var2)
-	update_data()
-
 def callback_smoking():
 	smoking_radio = widgets['smoking_status']
 	index = smoking_radio.active
@@ -116,6 +142,30 @@ def callback_drinking():
 	index = drinking_radio.active
 	alcohol_status = drinking_radio.labels[index]
 	process_alcohol(alcohol_status)
+	update_data()
+
+def callback_therapeutics():
+	therapeutics_radio = widgets['therapeutics']
+	var1, var2 = assert_WT(widgets['Variant1'].value), assert_WT(widgets['Variant2'].value)
+	index = therapeutics_radio.active
+	if index != None:
+		therapeutics_status = therapeutics_radio.labels[index]
+		if therapeutics_status != None:
+			process_therapeutics(therapeutics_status)
+			input_data['variant_adj'] = process_var_impact(var1, var2, therapeutics_status)
+	update_data()
+
+def callback_var1(attr, old, new):
+	var1, var2 = assert_WT(widgets['Variant1'].value), assert_WT(widgets['Variant2'].value)
+	therapeutic = input_data['therapeutics']
+	input_data['variant_adj'] = process_var_impact(var1, var2, therapeutic)
+	update_data()
+
+def callback_var2(attr, old, new):
+	var1, var2 = assert_WT(widgets['Variant1'].value), assert_WT(widgets['Variant2'].value)
+	callback_therapeutics()
+	therapeutic = input_data['therapeutics']
+	input_data['variant_adj'] = process_var_impact(var1, var2, therapeutic)
 	update_data()
 
 def update_data():
@@ -144,7 +194,7 @@ widgets['Variant1'].on_change('value', callback_var1)
 widgets['Variant2'].on_change('value', callback_var2)
 widgets['smoking_status'].on_change('active', lambda attr, old, new: callback_smoking())
 widgets['alcohol_status'].on_change('active', lambda attr, old, new: callback_drinking())
-
+widgets['therapeutics'].on_change('active', lambda attr, old, new: callback_therapeutics())
 
 # Plot Styling
 
