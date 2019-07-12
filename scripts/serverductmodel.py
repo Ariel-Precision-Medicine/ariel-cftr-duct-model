@@ -155,6 +155,28 @@ def callback_therapeutics():
 			input_data['variant_adj'] = process_var_impact(var1, var2, therapeutics_status)
 	update_data()
 
+def callback_luminal_antiporter():
+	luminal_antiporter_radio = widgets['lum_ap']
+	index =  luminal_antiporter_radio.active
+	if index != None:
+		lum_ap_status =  luminal_antiporter_radio.labels[index]
+		if lum_ap_status == 'Off':
+			input_data['ap_status'] = False
+		if lum_ap_status == 'On':
+			input_data['ap_status'] = True
+	update_data()
+
+def callback_basolateral_antiporter():
+	luminal_antiporter_radio = widgets['baso_ap']
+	index =  luminal_antiporter_radio.active
+	if index != None:
+		lum_ap_status =  luminal_antiporter_radio.labels[index]
+		if lum_ap_status == 'Off':
+			input_data['apb_status'] = False
+		if lum_ap_status == 'On':
+			input_data['apb_status'] = True
+	update_data()
+
 def callback_var1(attr, old, new):
 	var1, var2 = assert_WT(widgets['Variant1'].value), assert_WT(widgets['Variant2'].value)
 	therapeutic = input_data['therapeutics']
@@ -195,6 +217,8 @@ widgets['Variant2'].on_change('value', callback_var2)
 widgets['smoking_status'].on_change('active', lambda attr, old, new: callback_smoking())
 widgets['alcohol_status'].on_change('active', lambda attr, old, new: callback_drinking())
 widgets['therapeutics'].on_change('active', lambda attr, old, new: callback_therapeutics())
+widgets['lum_ap'].on_change('active', lambda attr, old, new: callback_luminal_antiporter())
+widgets['baso_ap'].on_change('active', lambda attr, old, new: callback_basolateral_antiporter())
 
 # Plot Styling
 
@@ -233,6 +257,8 @@ cl_plot.yaxis.axis_label_text_font = 'gilroy'
 cl_plot.yaxis.axis_label_text_font_style = 'normal'
 cl_plot.xaxis.axis_label_text_font = 'gilroy'
 cl_plot.xaxis.axis_label_text_font_style = 'normal'
+
+
 
 tabs = Tabs(tabs=[Panel(child=bi_plot, title='Bicarbonate Transport'), Panel(child=cl_plot, title='Chloride Transport')])
 layout = row(input_column, tabs)

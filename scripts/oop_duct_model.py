@@ -146,9 +146,11 @@ class Duct_Cell():
 		select_cftr2 = Select(title="CFTR Variant 2", value=None, options=var_menu, width = 100)
 		select_row = row(select_cftr1, select_cftr2, width = 500)
 		text_input = TextInput(width=200)
-		smoking_radio = RadioButtonGroup(labels=["Non-Smoker", "Light Smoker", "Heavy Smoker", "Past Smoker"])
-		drinking_radio = RadioButtonGroup(labels=["Non-Drinker", "Drinker"])
-		therapeutic_radio = RadioButtonGroup(labels=["None", "10uM Ivocaftor", "6uM Lumacaftor", "10uM Ivocaftor + 6uM Lumacaftor"])
+		smoking_radio = RadioButtonGroup(labels=["Non-Smoker", "Light Smoker", "Heavy Smoker", "Past Smoker"], active = 0)
+		drinking_radio = RadioButtonGroup(labels=["Non-Drinker", "Drinker"], active = 0)
+		therapeutic_radio = RadioButtonGroup(labels=["None", "10uM Ivocaftor", "6uM Lumacaftor", "10uM Ivocaftor + 6uM Lumacaftor"], active = 0)
+		luminal_antiporter_radio = RadioButtonGroup(labels=["Off", "On"], active = 0)
+		basolateral_antiporter_radio = RadioButtonGroup(labels=["Off", "On"], active = 0)
 		pt_div = Div(text = """<b>Patient Identifier</b>""", width=110, height=25, style={'font-family':'gilroy'})
 		ariel_div = Div(text = """<b>Duct Model </b> [Property of <a 
 						href="https://www.arielmedicine.com/" target="_blank">Ariel Precision 
@@ -165,15 +167,26 @@ class Duct_Cell():
 		therapeutics_div = Div(text = """<b>Therapeutics </b> [Source: <a 
 						href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6124440/"
 						target="_blank">PMID 30046002</a>]""", width=500, height=25, style={'font-family':'gilroy'})
+		lum_ap_div = Div(text = """<b>Luminal Antiporter Status </b> [Source: <a 
+						href="https://www.ncbi.nlm.nih.gov/pubmed/15257112"
+						target="_blank">PMID 15257112</a>]""", width=500, height=25, style={'font-family':'gilroy'})
+		baso_ap_div = Div(text = """<b>Basolateral Antiporter Status </b> [Source: <a 
+						href="https://www.ncbi.nlm.nih.gov/pubmed/15257112"
+						target="_blank">PMID 15257112</a>]""", width=500, height=25, style={'font-family':'gilroy'})
+		#image_div = Div(width = 200, height = 100, text="<img src='https://pancreapedia.org/sites/default/files/Figure1%20copy.jpg'>")
 		save_button = Button(label='Save Patient Data', button_type='warning')
 		input_row = row(pt_div, text_input, width = 400)
 		widget_column = column(ariel_div, variants_div, select_row,
 								therapeutics_div, therapeutic_radio,
 								smoking_div, smoking_radio,
-								drinking_div, drinking_radio)
+								drinking_div, drinking_radio,
+								lum_ap_div, luminal_antiporter_radio,
+								baso_ap_div, basolateral_antiporter_radio)
+								#image_div
 		widgets = {'Variant1': select_cftr1, 'Variant2': select_cftr2,
 					'smoking_status': smoking_radio, 'alcohol_status': drinking_radio,
-					'pt_id':text_input, 'therapeutics':therapeutic_radio}
+					'pt_id':text_input, 'therapeutics':therapeutic_radio, 'lum_ap':luminal_antiporter_radio,
+					'baso_ap':basolateral_antiporter_radio}
 		# widgets = [select_cftr1, select_cftr2, smoking_radio, drinking_radio]
 		# for item in widgets:
 		# 	item.on_change('value', self.user_inputs)
@@ -204,4 +217,8 @@ class Duct_Cell():
 		wt_results = run_model_CFTR(init_cond, 20000, 120000, 200000)
 		return patient_plot_CFTR(p1, p2, wt_results, None, None)
 
+
+cell1 = Duct_Cell()
+cell1.generate_CFTR_graphs()
+show(cell1.graphs['Patient'][1])
 
