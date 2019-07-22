@@ -224,7 +224,7 @@ widgets['baso_ap'].on_change('active', lambda attr, old, new: callback_basolater
 
 # Bicarb Plot
 bi_legend = Legend(items=[])
-bi_plot = figure(plot_height=400, plot_width=600)
+bi_plot = figure(plot_height=400, plot_width=600,  title='Patient Information')
 bi_plot.add_layout(bi_legend, 'right')
 bi_plot.legend.click_policy = 'hide'
 bi_plot.line('time', 'pt_bi_l', source=source, line_width=3, line_color = '#34344A', legend="Patient Luminal HCO3-")
