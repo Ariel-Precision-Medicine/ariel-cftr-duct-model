@@ -218,7 +218,7 @@ class Duct_Cell():
 		return patient_plot_CFTR(p1, p2, wt_results, None, None)
 
 
-cell1 = Duct_Cell()
-cell1.generate_CFTR_graphs()
-show(cell1.graphs['Patient'][1])
+#cell1 = Duct_Cell()
+#cell1.generate_CFTR_graphs()
+#show(cell1.graphs['Patient'][1])
 
