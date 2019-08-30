@@ -44,3 +44,5 @@ def generateRandomDataFrame(desiredLength):
 def buildCSV(desiredLength, filename):
 	df = generateRandomDataFrame(desiredLength)
 	df.to_csv(filename, index = False)
+
+buildCSV(25, 'haha.csv')
