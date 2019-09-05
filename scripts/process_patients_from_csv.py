@@ -44,7 +44,5 @@ def buildVariantDict(variantString, csv):
 		float(remove_standard_error(sub_df.iloc[0]['Ivocaftor and Lumacaftor']))
 	return varDict
 
-
-
 print(buildVariantDict('F311L', 'cutting_variant_data.csv'))
 print(buildVariantDict('I336K', 'cutting_variant_data.csv'))

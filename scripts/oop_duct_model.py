@@ -9,7 +9,7 @@ from bokeh.plotting import show
 from bokeh_plotting import run_model_CFTR, graph_CFTR, graph_xd_demo, patient_plot_CFTR
 from bokeh.models import Panel, Tabs
 from dcw_duct_model import init_cond
-from bokeh.models.widgets import Dropdown, CheckboxButtonGroup, Select, Button, Div, RadioButtonGroup, TextInput
+from bokeh.models.widgets import Dropdown, CheckboxButtonGroup, Select, Button, Div, RadioButtonGroup, TextInput, RadioGroup
 import pandas as pd
 
 import copy
@@ -146,7 +146,7 @@ class Duct_Cell():
 		select_cftr2 = Select(title="CFTR Variant 2", value=None, options=var_menu, width = 100)
 		select_row = row(select_cftr1, select_cftr2, width = 500)
 		text_input = TextInput(width=200)
-		smoking_radio = RadioButtonGroup(labels=["Non-Smoker", "Light Smoker", "Heavy Smoker", "Past Smoker"], active = 0)
+		smoking_radio = RadioGroup(labels=["Non-Smoker", "Current Light Smoker", "Current Heavy Smoker", "Past Light Smoker", "Past Heavy Smoker"], active = 0)
 		drinking_radio = RadioButtonGroup(labels=["Non-Drinker", "Drinker"], active = 0)
 		therapeutic_radio = RadioButtonGroup(labels=["None", "10uM Ivocaftor", "6uM Lumacaftor", "10uM Ivocaftor + 6uM Lumacaftor"], active = 0)
 		luminal_antiporter_radio = RadioButtonGroup(labels=["Off", "On"], active = 0)
@@ -175,7 +175,7 @@ class Duct_Cell():
 						target="_blank">PMID 15257112</a>]""", width=500, height=25, style={'font-family':'gilroy'})
 		#image_div = Div(width = 200, height = 100, text="<img src='https://pancreapedia.org/sites/default/files/Figure1%20copy.jpg'>")
 		save_button = Button(label='Save Patient Data', button_type='warning')
-		input_row = row(pt_div, text_input, width = 400)
+		input_row = row(pt_div, text_input, width = 500)
 		widget_column = column(ariel_div, variants_div, select_row,
 								therapeutics_div, therapeutic_radio,
 								smoking_div, smoking_radio,

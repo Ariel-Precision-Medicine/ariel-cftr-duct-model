@@ -96,8 +96,12 @@ def process_var_impact(var1, var2, therapeutic):
 
 # Assign Smoking Penalty
 def process_smokers(smoking_status):
+	# Estimated from Bynum et al. 1972, see supporting papers
+	smokingDictionary = {'Non-Smoker': 1, 'Current Light Smoker': 5/11, 
+						 'Current Heavy Smoker': 8/11, 'Past Light Smoker': 8.5/11,
+						 'Past Heavy Smoker': 7/11}
 	if smoking_status != 'Non-Smoker' and smoking_status != None:
-		input_data['smoke_adj'] = 0.75
+		input_data['smoke_adj'] = smokingDictionary[smoking_status]
 	else:
 		input_data['smoke_adj'] = 1
 

@@ -9,19 +9,19 @@ Model has been translated from XPPAUT to Python for flexibility and future use.
 
 Variant functionality has not been rigorously verified, but source is Cutting Paper for residual CFTR fxn found here: https://www.ncbi.nlm.nih.gov/pubmed/29805046
 
-Currently, three options are available:
+Currently, four options are available:
 (1) a user-interactive GUI application to load in desired variants and see their impacts
 (2) HTML-based plotting via Bokeh that outputs cleaner, visually appealing plots
 (3) a preliminary testing suite for the model [incomplete]
 (4) a local bokeh server with an instance of the model for user interactivity and further product development. This is currently functional. Next steps will be to explore how to deploy via Django and add directly to the Expert System on the Ariel server.
-
-Future work will add interactivity to (2) to allow the user to change criteria for the model (similar to (1)).
 
 All scripts are found in the "scripts" directory.
 All image and HTML outputs are found in the "outputs" subdirectory.
 PDFs of all supporting papers can be found in the "supporting_papers" directory.
 
 For best performance when using (2) to generate HTML plots, please install the Ariel-specific 'Gilroy' font packages found in the "fonts" directory.
+
+Future development will accomodate scripting to generate serialized data sets and images of graphs for batches of patients.
 
 Dependencies:
 * Python 3
