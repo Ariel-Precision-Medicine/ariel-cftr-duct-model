@@ -92,7 +92,7 @@ def buildCSVToQuery(patientIDs, dataframe):
 
 def grabVariant(chrNumAndPosition):
 	# Example input: 'chr7:g.117589482A>G'
-	geneDict, overallDict = None, None
+	geneDict, overallDict, protein_result = None, None, None
 	# Build myvariant object
 	mv = myvariant.MyVariantInfo()
 	# Query to select dbsnp dictionary from overall dictionary
@@ -103,10 +103,11 @@ def grabVariant(chrNumAndPosition):
 			if dbsnpDict:
 				# Gather gene information from dbSNP dictionary
 				geneDict = dbsnpDict['gene']
+				protein_result = findCommonProteinName(overallDict)
 				print('Search Query Successful')
 		except TypeError:
 			print('Search Query Not Found')
-	return geneDict, overallDict
+	return geneDict, overallDict, protein_result
 
 def formatChrAndPos(chromNum, pos, ref, alt):
 	# Inputs: strings from columns in Beagle dataset
@@ -129,22 +130,39 @@ def addDBSNPInfo(df):
 	queriedList = []
 	dbSNPList = []
 	generalList = []
+	proteinList = []
 	for i in range(len(df['#CHROM'])):
 		chromNum = df['#CHROM'][i]
 		pos = df['POS'][i]
 		ref = df['REF'][i]
 		alt = df['ALT'][i]
 		toQuery = formatChrAndPos(chromNum,pos,ref,alt)
-		dbsnpVar, genVar = grabVariant(toQuery)[0], grabVariant(toQuery)[1]
+		dbsnpVar, genVar, protein = grabVariant(toQuery)[0], grabVariant(toQuery)[1], grabVariant(toQuery)[2]
 		queriedList.append(toQuery)
 		dbSNPList.append(dbsnpVar)
 		generalList.append(genVar)
+		if protein:
+			protein = protein.split('|')[1].strip().replace('p.','').replace('=','')
+		proteinList.append(protein)
+
 	df2 = pd.DataFrame()
 	df2['queriedString'] = queriedList
 	df2['dbsnp'] = dbSNPList
 	df2['overall'] = generalList
+	df2['protein_string'] =  proteinList
 	df2.to_csv('outputs/queriedVariantList.csv')
 	return df2
+
+def findCommonProteinName(overallDict):
+	result = None
+	try:
+		result = overallDict['emv']['egl_protein']
+		print('Protein Query Successful')
+	except KeyError:
+		print('Protein Query Not Found')
+	return result
+
+
 
 # Perform functions
 df1 = appendColumnHeaders('colnames.txt', 'beagle_out_CFTR_genotype.txt')
@@ -152,6 +170,8 @@ addDBSNPInfo(df1)
 exportExcel('outputs/beagle_joined.xlsx', df1)
 patientIDs = gatherPatientIDs(df1)
 df2 = buildCSVToQuery(patientIDs, df1)
+
+#findCommonProteinName('chr7:g.117559479G>A')
 
 #grabVariant('chr7:g.117509093G>A')
 #addQueryStrings(df2)
