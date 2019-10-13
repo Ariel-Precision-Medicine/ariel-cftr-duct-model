@@ -218,7 +218,8 @@ class Duct_Cell():
 		return patient_plot_CFTR(p1, p2, wt_results, None, None)
 
 
-#cell1 = Duct_Cell()
-#cell1.generate_CFTR_graphs()
-#show(cell1.graphs['Patient'][1])
+cell1 = Duct_Cell()
+print(cell1.gen_var_menu())
+panda_test = pd.DataFrame.from_dict(cell1.variant_dict, orient='index')
+panda_test.to_csv('outputs/cutting_data_cleaned.csv')
 

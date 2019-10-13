@@ -14,6 +14,8 @@ Dependencies:
 import pandas as pd
 import myvariant
 import string
+import copy
+import math
 
 def appendColumnHeaders(colTextFile,dataTextFile):
 	# Read column text file and create df to hold information
@@ -72,22 +74,44 @@ def gatherPhasedVariants(patientID, df):
 		i += 1
 	return phasedVariants, patientID, df
 
-def buildCSVToQuery(patientIDs, dataframe):
+def buildCSVToQuery(patientIDs, dataframe, csv):
 	phasedList = []
 	# Create a list of processed phased variants for each patient
+	proteinDict = pd.read_csv(csv).to_dict(orient='list')
+	chrStrings, proteinStrings = proteinDict['queriedString'], proteinDict['protein_string']
+	proteinChanges = dict()
+	for i in range(len(chrStrings)):
+		protein = proteinStrings[i]
+		proteinChanges[chrStrings[i]] = protein
+
 	for patient in patientIDs:
 		phasedDict = dict()
 		phasedDict['ID'] = patient
 		ChrL, ChrR = gatherPhasedVariants(patient, dataframe)[0]['ChrL'], \
 		gatherPhasedVariants(patient, dataframe)[0]['ChrR']
+		# Add chromosome info before manipulation
 		phasedDict['ChrL'], phasedDict['ChrR'] = ChrL, ChrR
+		ChrLCopy = copy.deepcopy(ChrL)
+		ChrRCopy = copy.deepcopy(ChrR)
+		ChrOps = [ChrLCopy, ChrRCopy]
+		for i in range(len(ChrOps)):
+			proteinOps = ['LeftProtein', 'RightProtein']
+			newData = []
+			for variant in ChrOps[i]:
+				chrFormatted = formatChrAndPos(variant['#CHROM'], variant['POS'], \
+					variant['REF'], variant['ALT'])
+				variantProtein = proteinChanges[chrFormatted]
+				if type(variantProtein) == float:
+					variantProtein = None
+				newData.append(variantProtein)
+			phasedDict[proteinOps[i]] = newData
 		phasedList.append(phasedDict)
 	# Create a dataframe to hold processed information
 	# TODO: Add querying, smoking/alcohol use
 	data = phasedList
-	df = pd.DataFrame(data, columns = ['ID', 'ChrL', 'ChrR'])
+	df = pd.DataFrame(data, columns = ['ID', 'ChrL', 'ChrR', 'LeftProtein', 'RightProtein'])
 	# write dataframe to CSV for human readable format
-	df.to_csv('outputs/processed.csv')
+	df.to_csv('outputs/processed.csv', index = False)
 	return df
 
 def grabVariant(chrNumAndPosition):
@@ -125,7 +149,8 @@ def addQueryStrings(processedDf):
 			queryString = formatChrAndPos(chromNum, pos, ref, alt)
 	return 
 
-def addDBSNPInfo(df):
+def addDBSNPInfo(df, path):
+	# Error in that it returns 'V470M' instead of 'M470V'
 	# Build List of Queried Information from dbSNP
 	queriedList = []
 	dbSNPList = []
@@ -142,15 +167,15 @@ def addDBSNPInfo(df):
 		dbSNPList.append(dbsnpVar)
 		generalList.append(genVar)
 		if protein:
-			protein = protein.split('|')[1].strip().replace('p.','').replace('=','')
+			protein = protein.split('|')[1].strip().replace('p.','')
 		proteinList.append(protein)
 
 	df2 = pd.DataFrame()
 	df2['queriedString'] = queriedList
-	df2['dbsnp'] = dbSNPList
-	df2['overall'] = generalList
+	#df2['dbsnp'] = dbSNPList
+	#df2['overall'] = generalList
 	df2['protein_string'] =  proteinList
-	df2.to_csv('outputs/queriedVariantList.csv')
+	df2.to_csv(path, index = False)
 	return df2
 
 def findCommonProteinName(overallDict):
@@ -162,14 +187,43 @@ def findCommonProteinName(overallDict):
 		print('Protein Query Not Found')
 	return result
 
+def compareQueriedVariantsToVariantDatabase(queried_csv, database_csv):
+	# Input: csv file with variants in database and queried list
+	# Output: csv file with 'Present in Database' and 'Not Present in Database'
+	dfQueried = pd.read_csv(queried_csv)
+	dfDatabase = pd.read_csv(database_csv)
+	# Prepare lists to read
+	unprocessedQueriedList = dfQueried['protein_string'].tolist()
+	unprocessedDatabaseList = dfDatabase['Variant'].tolist()
+	databaseList, queriedList = [], []
+	# Remove NaN values
+	for item in unprocessedDatabaseList:
+		if type(item) == str:
+			databaseList.append(item)
+	for item in unprocessedQueriedList:
+		if type(item) == str:
+			queriedList.append(item)
+	# Create sets to compare
+	queriedSet = set(queriedList)
+	databaseSet = set(databaseList)
+	print('queried', queriedSet)
+	# Compare Sets
+	presentSet = queriedSet & databaseSet
+	notPresentSet = queriedSet - presentSet
+	print('present', presentSet)
+	print('not present', notPresentSet)
+	return
+
 
 
 # Perform functions
 df1 = appendColumnHeaders('colnames.txt', 'beagle_out_CFTR_genotype.txt')
-addDBSNPInfo(df1)
+#addDBSNPInfo(df1, 'outputs/queriedVariantList.csv')
 exportExcel('outputs/beagle_joined.xlsx', df1)
 patientIDs = gatherPatientIDs(df1)
-df2 = buildCSVToQuery(patientIDs, df1)
+df2 = buildCSVToQuery(patientIDs, df1, 'outputs/queriedVariantList.csv')
+
+compareQueriedVariantsToVariantDatabase('outputs/queriedVariantList.csv', 'inputs/all_variants.csv')
 
 #findCommonProteinName('chr7:g.117559479G>A')
 
