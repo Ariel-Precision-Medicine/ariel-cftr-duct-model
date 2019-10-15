@@ -219,7 +219,7 @@ class Duct_Cell():
 
 
 cell1 = Duct_Cell()
-print(cell1.gen_var_menu())
+cell1.gen_var_menu()
 panda_test = pd.DataFrame.from_dict(cell1.variant_dict, orient='index')
 panda_test.to_csv('outputs/cutting_data_cleaned.csv')
 
