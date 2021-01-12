@@ -238,8 +238,10 @@ bi_plot.line('time', 'wt_bi_i', source=source, line_width=3, line_color = '#7FE0
 bi_plot.legend.label_text_font = 'gilroy'
 bi_plot.title.text_font = 'gilroy'
 bi_plot.title.text_font_style = 'bold'
+bi_plot.yaxis.axis_label = 'Concentration (mM)'
 bi_plot.yaxis.axis_label_text_font = 'gilroy'
 bi_plot.yaxis.axis_label_text_font_style = 'normal'
+bi_plot.xaxis.axis_label = 'Time (min)'
 bi_plot.xaxis.axis_label_text_font = 'gilroy'
 bi_plot.xaxis.axis_label_text_font_style = 'normal'
 
@@ -257,8 +259,10 @@ cl_plot.legend.background_fill_color = '#F4F1E1'
 cl_plot.legend.background_fill_alpha = 0.25
 cl_plot.title.text_font = 'gilroy'
 cl_plot.title.text_font_style = 'bold'
+cl_plot.yaxis.axis_label = 'Concentration (mM)'
 cl_plot.yaxis.axis_label_text_font = 'gilroy'
 cl_plot.yaxis.axis_label_text_font_style = 'normal'
+cl_plot.xaxis.axis_label = 'Time (min)'
 cl_plot.xaxis.axis_label_text_font = 'gilroy'
 cl_plot.xaxis.axis_label_text_font_style = 'normal'
 
