@@ -22,8 +22,22 @@ input_data = wt_cell.input_dict
 
 init = copy.deepcopy(init_cond)
 
-# Construct Arrays from Duct Model System Equations
 def generate_source_array(input_data, key):
+	'''
+	Construct Arrays from Duct Model System Equations to pass along to Bokeh's ColumnDataSource
+
+	Parameters
+	----------
+	input_data : dict
+		Basic model parameters. New cell class with parameters instantiated each time function is called.
+	key : str
+		String referring to ion concentration in question. Used as a key to pull from generated nested arrays.
+
+	Returns
+	-------
+	choice_array : array
+		Selected array denoted by key provided of length len(time)
+	'''
 	choice_array = run_model_CFTR(input_data, 20000, 120000, 200000)[0][key]
 	if key == 'time':
 		choice_array /=  20000
@@ -61,7 +75,20 @@ input_column, widgets = wt_cell.process_widgets(wt_cell.gen_var_menu())
 # 	variant_dict[pd.read_csv('cutting_variants.csv')['Variant'][i]] = pd.read_csv('cutting_variants.csv')['wt_func'][i]
 
 def remove_standard_error(text_string):
-		return float(text_string[0:text_string.find(u'\u00b1')].strip())
+	'''
+	Uses unicode character code to remove standard error (+/-) icon from number
+
+	Parameters
+	----------
+	text_string : str
+		Example -> "132.4 +/- 4.5"
+
+	Returns
+	-------
+	float
+		Example -> 132.4
+	'''
+	return float(text_string[0:text_string.find(u'\u00b1')].strip())
 
 variant_ops = pd.read_csv('cutting_variant_data.csv')['Variant']
 variant_dict = dict()
@@ -73,8 +100,25 @@ for i in range(len(variant_ops)):
 	individual_dict = {'Residual':residual, 'Ivocaftor':ivo, 'Lumacaftor':lum, 'Combination Therapy':combination}
 	variant_dict[pd.read_csv('cutting_variant_data.csv')['Variant'][i]] = individual_dict
 
-# Match variant impact to sweat chloride dictionary
 def process_var_impact(var1, var2, therapeutic):
+	'''
+	Match variant impact to sweat chloride dictionary from Cutting et al
+
+	Parameters
+	----------
+	var1 : str
+		CFTR variant name to be used as key in Cutting data dictionary
+	var2 : str
+		CFTR variant name to be used as key in Cutting data dictionary
+	therapeutic: str
+		Therapeutic option selected on front end (if any) to examine correct column in data dictionary
+
+	Returns
+	-------
+	output : float
+		Average of variant impacts on chloride conductance in the presence of selected therapeutic
+
+	'''
 	vardict = {var1:None, var2:None}
 	varlist = [var1, var2]
 	for item in varlist:
@@ -94,9 +138,17 @@ def process_var_impact(var1, var2, therapeutic):
 	output = np.mean([vardict[var1], vardict[var2]])/100
 	return output
 
-# Assign Smoking Penalty
 def process_smokers(smoking_status):
-	# Estimated from Bynum et al. 1972, see supporting papers
+	'''
+	Assign Smoking Penalty to ion fluxes in data dictionary.
+	smokingDictionary data estimated from Bynum et al. 1972, see supporting papers.
+
+	Parameters
+	----------
+	smoking_status : str
+		Description of smoking behavior (via pack-years). Five options.
+
+	'''
 	smokingDictionary = {'Non-Smoker': 1, 'Current Light Smoker': 5/11, 
 						 'Current Heavy Smoker': 8/11, 'Past Light Smoker': 8.5/11,
 						 'Past Heavy Smoker': 7/11}
@@ -105,15 +157,31 @@ def process_smokers(smoking_status):
 	else:
 		input_data['smoke_adj'] = 1
 
-# Assign Drinking Penalty
 def process_alcohol(alcohol_status):
+	'''
+	Assign Drinking Penalty to ion fluxes in data dictionary.
+	Can be made more granular with the introduction of additional drinking data.
+
+	Parameters
+	----------
+	alcohol_status : str
+		Description of drinking behavior. Two options.
+
+	'''
 	if alcohol_status != 'Non-Drinker' and alcohol_status != None:
 		input_data['alcohol_adj'] = 0.8
 	else:
 		input_data['alcohol_adj'] = 1
 
-# Update therapeutics
 def process_therapeutics(therapeutics_status):
+	'''
+	Update therapeutics from front-end input
+
+	Parameters
+	----------
+	therapeutics_status : str
+		Current value of therapeutics radio button on front-end
+	'''
 	if therapeutics_status != None:
 		if therapeutics_status == 'None':
 			input_data['therapeutics'] = 'None'
@@ -126,8 +194,16 @@ def process_therapeutics(therapeutics_status):
 	else:
 		input_data['therapeutics'] = 'None'
 
-# Catch Edge Case when WT input == None
 def assert_WT(value):
+	'''
+	Catch Edge Case when WT input = None
+
+	Parameters
+	----------
+	value : str
+		Current string pulled from variant dropdown menu suggestion
+
+	'''
 	if value == None:
 		return 'Wild Type'
 	else:
