@@ -29,27 +29,118 @@ init_cond = {'g_bi': 0.2, 'g_cl': 1, 'zeta': 0.05,
 			  'ap_status': False, 'gcftr': 0.00007, 'smoke_adj': None,
 			  'alcohol_adj': None}
 
-# Antiporter Fxn (ap(ao,ai,bo,bi,ka,kb) in original)
+
 def antiporter(ao,ai,bo,bi,ka,kb):
+	'''
+	Antiporter Function (ap(ao,ai,bo,bi,ka,kb) in original XPPAUT)
+
+	Based on derived equation in Sohma 1996 ("A Mathematical Model of Pancreatic Ductal Epithelium").
+
+	Assumptions for Binding Kinetics
+	--------------------------------
+	* antiporters had a single site which bound the transported ions
+	* transported ions competed for the single binding site
+	* that the antiporters did not cross the membrane in the absence of a bound ion
+	* velocity constants for transport from the outside to inside and vice versa were the same
+	* that the dissociation constants (ka,kb) for each ion at the intracellular and extracellular faces of the membrane were the same
+
+
+	Parameters
+	----------
+	ao : float
+		Molar concentration of ion A outside of cell membrane
+	ai : float
+		Molar concentration of ion A inside cell membrane
+	bo : float
+		Molar concentration of ion B outside of cell membrane
+	bi : float
+		Molar concentration of ion B inside of cell membrane
+	ka : float
+		Dissociation constant for ion A
+	kb : float
+		Dissociation constant for ion B
+
+	Returns
+	-------
+	ratio : float
+		Fraction of ionic flux moving through antiporter. Multiply with conductance to yield flux through antiporter.
+	'''
     numerator = ao*bi-bo*ai
     denominator = (ka*kb*((1+ai/ka+bi/kb)*(ao/ka+bo/kb)+\
                           (1+ao/ka+bo/kb)*(ai/ka+bi/kb)))
-    return (numerator/denominator)
+    ratio = numerator / denominator
+    return ratio
 
-# Effective Permeability Fxn (g(xi,xo) in original)
-# Linearization of the Constant Field Eqn
+
 def eff_perm(xi,xo):
-    return (xi*xo*np.log(xi/xo)/(xi-xo)) # Natural Log
+	'''
+	Effective Permeability Function (g(xi,xo) in original).
+	
+	Parameters
+	----------
+	xi : float
+		Molar concentration of ion X inside of the cell membrane
+	xo : float
+		Molar concentration of ion X outside of the cell membrane
 
-# Nernst Potential Fxn
+	Returns
+	-------
+	float
+		Coefficient found by linearizing the constant field equation around the equilibrium potential
+
+	'''
+    return (xi*xo*np.log(xi/xo)/(xi-xo))
+
 def nernst_potential(a,b):
+	'''
+	Nernst Potential Function
+
+	Parameters
+	----------
+	a : float
+		Concentration inside cell
+	b : float
+		Concentration outside cell
+
+	Returns
+	-------
+	float
+		Nernst potential in volts (V)
+	'''
     # Physical Constants
     ideal_gas = 8.31451
     faraday_cst = 96485
     body_temp = 310 #K
-    return (ideal_gas*body_temp/faraday_cst)*np.log(a/b) # Natural Log
+    return (ideal_gas*body_temp/faraday_cst)*np.log(a/b)
 
 def duct_model_system(t, y, cond):
+	'''
+	System of ordinary differential equations to model ion flux of pancreatic ductal epithelial cells
+	
+	Parameters
+	----------
+	t : np.array
+		Array of time series to solve differential equations along
+	y : np.array
+		Initial conditions of the system:
+		* y[0] = intracellular bicarbonate concentration (HCO3-)
+		* y[1] = luminal bicarbonate concentration (HCO3-)
+		* y[2] = intracellular chloride concentration (Cl-)
+		* y[3] = intracellular sodium concentration (Na+)
+		* y[4] = state of CFTR channel (OPEN = 1, closed = ~0)
+		Luminal chloride is linked to y[1] so it is not explicitly described.
+		Similarly, intracellular potassium is linked to y[3] so it is not explicitly described.
+	cond: dict
+		Dictionary containing experimentally-derived parameters described in original Ermentrout paper.
+		Open for updates over time as more data become available.
+
+	Returns
+	-------
+	array
+		Nested arrays to describe the change in ion concentration at each time step in the simulation.
+
+	'''
+
 	# Unpack variables to be integrated
 	bi = y[0]
 	bl = y[1]
